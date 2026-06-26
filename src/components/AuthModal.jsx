@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Eye, EyeOff, ArrowRight, Loader2, CheckCircle, X, Sparkles } from 'lucide-react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, firebaseReady } from '@/lib/firebase';
 import { useAuth } from '@/lib/AuthContext';
 import { useAuthModal } from '@/lib/AuthModalContext';
 import { useTheme } from '@/lib/ThemeContext';
@@ -59,33 +59,47 @@ export default function AuthModal() {
         setError('');
         setLoading(true);
         try {
-            if (tab === 'login') {
-                await signInWithEmailAndPassword(auth, email, password);
-                // onAuthStateChanged in AuthContext handles syncing + state update
-                handleSuccess();
-            } else {
-                if (!fullName.trim()) {
-                    setError('Please enter your full name.');
-                    setLoading(false);
-                    return;
+            if (firebaseReady && auth) {
+                // Firebase auth path
+                if (tab === 'login') {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    handleSuccess();
+                } else {
+                    if (!fullName.trim()) { setError('Please enter your full name.'); setLoading(false); return; }
+                    const cred = await createUserWithEmailAndPassword(auth, email, password);
+                    await updateProfile(cred.user, { displayName: fullName.trim() });
+                    await cred.user.getIdToken(true);
+                    setSuccess('Account created! Signing you in…');
+                    handleSuccess();
                 }
-                const cred = await createUserWithEmailAndPassword(auth, email, password);
-                await updateProfile(cred.user, { displayName: fullName.trim() });
-                // Force token refresh so onAuthStateChanged picks up displayName
-                await cred.user.getIdToken(true);
-                setSuccess('Account created! Signing you in…');
+            } else {
+                // Session auth fallback (no Firebase configured)
+                const endpoint = tab === 'login' ? '/api/auth/login' : '/api/auth/register';
+                const body = tab === 'login'
+                    ? { email, password }
+                    : { email, password, full_name: fullName.trim() };
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                    credentials: 'include',
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Authentication failed');
+                setUser(data.user);
+                setIsAuthenticated(true);
                 handleSuccess();
             }
         } catch (err) {
-            const msg = {
-                'auth/user-not-found':    'No account with that email.',
-                'auth/wrong-password':    'Incorrect password.',
+            const firebaseErrors = {
+                'auth/user-not-found':       'No account with that email.',
+                'auth/wrong-password':       'Incorrect password.',
                 'auth/email-already-in-use': 'An account with this email already exists.',
-                'auth/weak-password':     'Password must be at least 6 characters.',
-                'auth/invalid-email':     'Invalid email address.',
-                'auth/too-many-requests': 'Too many attempts. Please try again later.',
-            }[err.code] || err.message || 'Something went wrong.';
-            setError(msg);
+                'auth/weak-password':        'Password must be at least 6 characters.',
+                'auth/invalid-email':        'Invalid email address.',
+                'auth/too-many-requests':    'Too many attempts. Please try again later.',
+            };
+            setError(firebaseErrors[err.code] || err.message || 'Something went wrong.');
         }
         setLoading(false);
     };

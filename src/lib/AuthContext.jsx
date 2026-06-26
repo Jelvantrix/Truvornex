@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './firebase';
+import { auth, firebaseReady } from './firebase';
 
 const AuthContext = createContext(null);
 
@@ -11,7 +11,6 @@ export const AuthProvider = ({ children }) => {
     const [authError, setAuthError] = useState(null);
     const [authChecked, setAuthChecked] = useState(false);
 
-    // Sync Firebase user → server session
     const syncToBackend = async (firebaseUser) => {
         try {
             const idToken = await firebaseUser.getIdToken();
@@ -32,37 +31,50 @@ export const AuthProvider = ({ children }) => {
     };
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-            if (firebaseUser) {
-                const serverUser = await syncToBackend(firebaseUser);
-                const merged = serverUser || {
-                    id: firebaseUser.uid,
-                    email: firebaseUser.email,
-                    full_name: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
-                    avatar_url: firebaseUser.photoURL,
-                    role: 'customer',
-                };
-                setUser(merged);
-                setIsAuthenticated(true);
-            } else {
-                setUser(null);
-                setIsAuthenticated(false);
-            }
-            setIsLoadingAuth(false);
-            setAuthChecked(true);
-        });
-        return unsubscribe;
+        if (firebaseReady && auth) {
+            // Firebase mode — listen for auth state changes
+            const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+                if (firebaseUser) {
+                    const serverUser = await syncToBackend(firebaseUser);
+                    setUser(serverUser || {
+                        id: firebaseUser.uid,
+                        email: firebaseUser.email,
+                        full_name: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
+                        avatar_url: firebaseUser.photoURL,
+                        role: 'customer',
+                    });
+                    setIsAuthenticated(true);
+                } else {
+                    setUser(null);
+                    setIsAuthenticated(false);
+                }
+                setIsLoadingAuth(false);
+                setAuthChecked(true);
+            });
+            return unsubscribe;
+        } else {
+            // Session-only fallback — check existing server session
+            fetch('/api/auth/user', { credentials: 'include' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.user) {
+                        setUser(data.user);
+                        setIsAuthenticated(true);
+                    }
+                })
+                .catch(() => {})
+                .finally(() => {
+                    setIsLoadingAuth(false);
+                    setAuthChecked(true);
+                });
+        }
     }, []);
 
-    // Kept for manual re-check if needed by other components
     const checkUserAuth = async () => {
         try {
             const res = await fetch('/api/auth/user', { credentials: 'include' });
             const data = await res.json();
-            if (data.user) {
-                setUser(data.user);
-                setIsAuthenticated(true);
-            }
+            if (data.user) { setUser(data.user); setIsAuthenticated(true); }
         } catch (err) {
             setAuthError({ type: 'auth_error', message: err.message });
         }
@@ -70,7 +82,7 @@ export const AuthProvider = ({ children }) => {
 
     const logout = async (shouldRedirect = true) => {
         try {
-            await auth.signOut();
+            if (firebaseReady && auth) await auth.signOut();
             await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
         } catch (err) {
             console.error('Logout failed:', err);

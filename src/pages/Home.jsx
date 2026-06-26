@@ -885,7 +885,7 @@ export default function Home() {
             <section>
                 <SectionHeader title={`Top-Rated Providers${city ? ` in ${city}` : ''}`} href="/nearby" label="View all" />
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {(liveProviders.length > 0 ? liveProviders : PROVIDERS).map((p, i) => {
+                    {(liveProviders.length > 0 ? liveProviders : FALLBACK_PROVIDERS).map((p, i) => {
                         const isLive   = liveProviders.length > 0;
                         const name     = isLive ? (p.full_name || p.business_name || 'Provider') : p.name;
                         const role     = isLive ? (p.category_slug || 'Service Provider') : p.role;
