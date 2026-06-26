@@ -12,7 +12,7 @@ import { serverError } from './utils.js';
 import { requireAdminAuth } from './security.js';
 import * as simon from './simon.js';
 import { startScheduledJobs as startSimonMonitor } from './simon/monitor.js';
-import { initNewTables, initExtendedTables, initNeighborhoodTables, initLocationIntelligence, writeAuditLog, createNotification, writeSimonAction } from './db.js';
+import { initNewTables, initExtendedTables, initNeighborhoodTables, initLocationIntelligence, writeAuditLog, createNotification, writeSimonAction, refreshZoneStats } from './db.js';
 import financialRouter from './financial.js';
 import notificationsRouter, { broadcastNotification } from './notifications-routes.js';
 import { buildCredential, verifyCredential, recordSkillActivity, refreshIncomeSnapshots } from './identity.js';
@@ -2170,6 +2170,8 @@ if (isProd) {
             startScheduledJobs();
             await installTriggers();
             await startRealtimeListeners();
+            await refreshZoneStats();
+            setInterval(refreshZoneStats, 5 * 60 * 1000);
         } catch (err) {
             console.warn('Some background services failed to start:', err.message);
             console.warn('Server will continue without these services');
@@ -2220,6 +2222,8 @@ if (isProd) {
             startScheduledJobs();
             await installTriggers();
             await startRealtimeListeners();
+            await refreshZoneStats();
+            setInterval(refreshZoneStats, 5 * 60 * 1000);
         } catch (err) {
             console.warn('Some background services failed to start:', err.message);
             console.warn('Server will continue without these services');

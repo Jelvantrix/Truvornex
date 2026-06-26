@@ -417,12 +417,12 @@ export async function initNeighborhoodTables() {
         const { rows: existingZones } = await client.query('SELECT COUNT(*) FROM neighborhood_zones');
         if (parseInt(existingZones[0].count) === 0) {
             await client.query(`
-                INSERT INTO neighborhood_zones (name, area, city, health_score, demand_index) VALUES
-                ('DHA Phase 5', 'Defence Housing Authority', 'Karachi', 75.0, 60.0),
-                ('Clifton Block 9', 'Clifton', 'Karachi', 82.0, 75.0),
-                ('Gulshan-e-Iqbal Block 10', 'Gulshan-e-Iqbal', 'Karachi', 68.0, 55.0),
-                ('North Nazimabad Block A', 'North Nazimabad', 'Karachi', 71.0, 65.0),
-                ('Johar Chowrangi', 'Gulistan-e-Johar', 'Karachi', 64.0, 58.0)
+                INSERT INTO neighborhood_zones (name, area, city, health_score, demand_index, center_lat, center_lng) VALUES
+                ('DHA Phase 5',              'Defence Housing Authority', 'Karachi', 75.0, 60.0, 24.7917, 67.0517),
+                ('Clifton Block 9',          'Clifton',                  'Karachi', 82.0, 75.0, 24.8120, 67.0311),
+                ('Gulshan-e-Iqbal Block 10', 'Gulshan-e-Iqbal',          'Karachi', 68.0, 55.0, 24.9286, 67.0978),
+                ('North Nazimabad Block A',  'North Nazimabad',          'Karachi', 71.0, 65.0, 24.9447, 67.0648),
+                ('Gulistan-e-Johar',         'Gulistan-e-Johar',         'Karachi', 64.0, 58.0, 24.9214, 67.1328)
             `);
         }
 
@@ -983,19 +983,11 @@ export async function initLocationIntelligence() {
                 ADD COLUMN IF NOT EXISTS radius_meters INTEGER DEFAULT 25000
         `);
         
-        // Update existing zones with default coordinates if they don't have them
+        // Only set default coords for zones that genuinely have no coordinates
         await client.query(`
             UPDATE neighborhood_zones
-            SET 
-                center_lat = CASE 
-                    WHEN center_lat IS NULL THEN 24.8607
-                    ELSE center_lat 
-                END,
-                center_lng = CASE 
-                    WHEN center_lng IS NULL THEN 67.0011
-                    ELSE center_lng 
-                END
-            WHERE center_lat IS NULL OR center_lng IS NULL
+            SET center_lat = 24.8607, center_lng = 67.0011
+            WHERE center_lat IS NULL AND center_lng IS NULL
         `);
         
         await client.query(`
@@ -1219,5 +1211,51 @@ export async function initExtendedTables() {
         throw err;
     } finally {
         client.release();
+    }
+}
+
+// ── Refresh zone stats from real data ────────────────────────────────────────
+// Computes demand_index from recent bookings + open emergencies,
+// health_score from booking completion rate, active_providers from presence.
+// Triggers pg_notify('zone_heatmap') so SSE clients get a live push.
+export async function refreshZoneStats() {
+    try {
+        await pool.query(`
+            UPDATE neighborhood_zones nz SET
+                active_providers = COALESCE((
+                    SELECT COUNT(*)::int FROM provider_presence pp
+                    WHERE pp.current_zone_id::text = nz.id::text
+                      AND pp.is_online = true
+                      AND pp.last_heartbeat > NOW() - INTERVAL '10 minutes'
+                ), 0),
+                demand_index = LEAST(100, GREATEST(0, COALESCE((
+                    SELECT LEAST(100,
+                        (SELECT COUNT(*)::numeric * 8
+                         FROM bookings b
+                         WHERE b.status IN ('pending','confirmed','in_progress')
+                           AND b.created_at > NOW() - INTERVAL '6 hours')
+                        +
+                        (SELECT COUNT(*)::numeric * 20
+                         FROM emergency_requests er
+                         WHERE er.status IN ('open','pending')
+                           AND er.created_at > NOW() - INTERVAL '2 hours')
+                    )
+                ), nz.demand_index))),
+                health_score = LEAST(100, GREATEST(0,
+                    50 + COALESCE((
+                        SELECT
+                            (COUNT(*) FILTER (WHERE status = 'completed')::numeric
+                             / NULLIF(COUNT(*), 0) * 50)
+                            - (COUNT(*) FILTER (WHERE status = 'cancelled')::numeric
+                               / NULLIF(COUNT(*), 0) * 20)
+                        FROM bookings b
+                        WHERE b.created_at > NOW() - INTERVAL '7 days'
+                    ), 0)
+                )),
+                updated_at = NOW()
+        `);
+        await pool.query(`SELECT pg_notify('zone_heatmap', 'refresh')`);
+    } catch (err) {
+        console.error('[refreshZoneStats] error:', err.message);
     }
 }
