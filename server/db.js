@@ -16,7 +16,7 @@ export async function initNewTables() {
             ALTER TABLE users
                 ADD COLUMN IF NOT EXISTS phone TEXT,
                 ADD COLUMN IF NOT EXISTS city TEXT,
-                ADD COLUMN IF NOT EXISTS country TEXT DEFAULT 'PK',
+                ADD COLUMN IF NOT EXISTS country TEXT DEFAULT NULL,
                 ADD COLUMN IF NOT EXISTS onboarding_complete BOOLEAN DEFAULT FALSE,
                 ADD COLUMN IF NOT EXISTS zone_id UUID
         `);
@@ -26,7 +26,7 @@ export async function initNewTables() {
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                 balance NUMERIC(12,2) NOT NULL DEFAULT 0 CHECK (balance >= 0),
-                currency TEXT NOT NULL DEFAULT 'PKR',
+                currency TEXT NOT NULL DEFAULT 'USD',
                 is_frozen BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMPTZ DEFAULT NOW(),
                 updated_at TIMESTAMPTZ DEFAULT NOW(),

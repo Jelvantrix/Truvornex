@@ -34,10 +34,16 @@ async function computeIncome(userId) {
         WHERE user_id = $1 AND type = 'credit' AND status = 'completed'
     `, [userId]);
 
+    // Get the user's actual wallet currency (not hardcoded)
+    const { rows: walletRows } = await pool.query(
+        `SELECT currency FROM wallets WHERE user_id = $1 LIMIT 1`, [userId]
+    );
+    const currency = walletRows[0]?.currency || 'USD';
+
     const r = rows[0];
     const p365 = parseFloat(r.p365) || 0;
     return {
-        currency: 'PKR',
+        currency,
         period_30d:  parseFloat(r.p30)  || 0,
         period_90d:  parseFloat(r.p90)  || 0,
         period_365d: p365,
@@ -126,8 +132,8 @@ export async function buildCredential(userId) {
         subject: {
             id:           user.id,
             name:         user.full_name || 'Provider',
-            city:         user.city || 'Pakistan',
-            country:      user.country || 'PK',
+            city:         user.city || null,
+            country:      user.country || null,
             has_avatar:   !!user.avatar_url,
             member_since: user.created_at?.toISOString() || null,
         },

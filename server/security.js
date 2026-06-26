@@ -559,13 +559,12 @@ async function createSecureSession(req, user) {
 function validateSessionBinding(req) {
     if (!req.session?.user) return false;
     
-    // Check IP binding
-    if (req.session.ip !== req.ip) {
-        return false;
-    }
-    
+    // NOTE: IP check intentionally removed — proxied/cloud deployments (Railway, Vercel, etc.)
+    // can present different IPs for the same user across requests (IPv4/IPv6, proxy rotation),
+    // causing false logouts on page refresh. UA check + timeouts provide sufficient binding.
+
     // Check User-Agent binding
-    if (req.session.ua !== req.headers['user-agent']) {
+    if (req.session.ua && req.session.ua !== req.headers['user-agent']) {
         return false;
     }
     

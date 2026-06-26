@@ -12,7 +12,7 @@ import { serverError } from './utils.js';
 import { requireAdminAuth } from './security.js';
 import * as simon from './simon.js';
 import { startScheduledJobs as startSimonMonitor } from './simon/monitor.js';
-import { initNewTables, initExtendedTables, initNeighborhoodTables, initLocationIntelligence, writeAuditLog, createNotification, writeSimonAction, refreshZoneStats } from './db.js';
+import { initNewTables, initExtendedTables, initNeighborhoodTables, initLocationIntelligence, writeAuditLog, createNotification, writeSimonAction, refreshZoneStats, getOrCreateZone } from './db.js';
 import financialRouter from './financial.js';
 import notificationsRouter, { broadcastNotification } from './notifications-routes.js';
 import { buildCredential, verifyCredential, recordSkillActivity, refreshIncomeSnapshots } from './identity.js';
@@ -144,9 +144,15 @@ async function initDb() {
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS clerk_user_id TEXT UNIQUE`).catch(() => {});
         await initNewTables();
         await initExtendedTables();
-        await initNeighborhoodTables(); // neighborhood_zones schema + seed lives in db.js
+        await initNeighborhoodTables(); // neighborhood_zones schema lives in db.js
         await initLocationIntelligence(); // PostGIS and location-aware features
         await initSecurityTables(); // Security layer tables
+        // Remove any legacy hardcoded zones (e.g. Karachi seed from old migration)
+        // that were inserted without real coordinates — they have geolocation = NULL
+        // and would pollute distance queries for users in other countries.
+        try {
+            await pool.query(`DELETE FROM neighborhood_zones WHERE geolocation IS NULL`);
+        } catch (_) {} // table may not have geolocation col yet on first run — safe to ignore
         console.log('Database ready');
     } catch (err) {
         console.error('DB init error:', err.message);
@@ -327,7 +333,7 @@ app.post('/api/auth/signup', async (req, res) => {
         
         // Auto-create wallet for new user
         await pool.query(
-            `INSERT INTO wallets (user_id, balance, currency) VALUES ($1, 0, 'PKR') ON CONFLICT (user_id, currency) DO NOTHING`,
+            `INSERT INTO wallets (user_id, balance, currency) VALUES ($1, 0, 'USD') ON CONFLICT (user_id, currency) DO NOTHING`,
             [user.id]
         );
         
@@ -448,7 +454,7 @@ app.post('/api/auth/firebase-sync', async (req, res) => {
                 );
                 user = newUsers[0];
                 await pool.query(
-                    `INSERT INTO wallets (user_id, balance, currency) VALUES ($1, 0, 'PKR') ON CONFLICT (user_id, currency) DO NOTHING`,
+                    `INSERT INTO wallets (user_id, balance, currency) VALUES ($1, 0, 'USD') ON CONFLICT (user_id, currency) DO NOTHING`,
                     [user.id]
                 );
             }
@@ -1373,7 +1379,10 @@ app.get('/api/zones/heatmap', async (req, res) => {
         let query, params;
 
         if (lat && lng) {
-            // Return zones ordered by distance from user — nearest city first
+            // Ensure a zone exists near this user before querying
+            await getOrCreateZone(parseFloat(lat), parseFloat(lng));
+
+            // Return only zones within 50 km of the user — never return zones from other countries
             query = `
                 SELECT
                     nz.id, nz.name, nz.city,
@@ -1393,6 +1402,11 @@ app.get('/api/zones/heatmap', async (req, res) => {
                     ) AS open_emergencies
                 FROM neighborhood_zones nz
                 WHERE nz.geolocation IS NOT NULL
+                  AND ST_DWithin(
+                      nz.geolocation,
+                      ST_SetSRID(ST_MakePoint($1,$2),4326)::geography,
+                      50000
+                  )
                 ORDER BY
                     ST_Distance(nz.geolocation, ST_SetSRID(ST_MakePoint($1,$2),4326)::geography) ASC,
                     nz.demand_index DESC

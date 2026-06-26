@@ -106,7 +106,7 @@ export async function getHomeInsights({ area = 'your area', user_id } = {}) {
     const { h, weekend, month } = timeCtx();
 
     const ai = await callAI(
-        `You are Simon, the AI intelligence layer of Truvornex neighborhood services platform in Pakistan. Return JSON with exactly 3 insights: {"insights":[{"tag":"2-3 word label","message":"actionable insight max 115 chars","type":"demand|reminder|bundle|trust|suggestion"},{"tag":...},{"tag":...}]}. Be specific, personal, and useful.`,
+        `You are Simon, the AI intelligence layer of Truvornex neighborhood services platform. Return JSON with exactly 3 insights: {"insights":[{"tag":"2-3 word label","message":"actionable insight max 115 chars","type":"demand|reminder|bundle|trust|suggestion"},{"tag":...},{"tag":...}]}. Be specific, personal, and useful.`,
         `Area: ${safeArea}, Hour: ${h}, Month: ${month + 1}, Weekend: ${weekend}`
     );
     if (ai?.insights?.length >= 3) {
