@@ -36,13 +36,34 @@ export const AuthProvider = ({ children }) => {
             const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
                 if (firebaseUser) {
                     const serverUser = await syncToBackend(firebaseUser);
-                    setUser(serverUser || {
-                        id: firebaseUser.uid,
-                        email: firebaseUser.email,
-                        full_name: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
-                        avatar_url: firebaseUser.photoURL,
-                        role: 'customer',
-                    });
+                    if (serverUser) {
+                        setUser(serverUser);
+                    } else {
+                        // Sync failed — try fetching existing session before falling back
+                        try {
+                            const r = await fetch('/api/auth/user', { credentials: 'include' });
+                            const d = await r.json();
+                            if (d.user) {
+                                setUser(d.user);
+                            } else {
+                                setUser({
+                                    id: firebaseUser.uid,
+                                    email: firebaseUser.email,
+                                    full_name: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
+                                    avatar_url: firebaseUser.photoURL,
+                                    role: 'customer',
+                                });
+                            }
+                        } catch {
+                            setUser({
+                                id: firebaseUser.uid,
+                                email: firebaseUser.email,
+                                full_name: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
+                                avatar_url: firebaseUser.photoURL,
+                                role: 'customer',
+                            });
+                        }
+                    }
                     setIsAuthenticated(true);
                 } else {
                     setUser(null);
