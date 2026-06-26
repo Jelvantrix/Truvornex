@@ -1,15 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { Eye, EyeOff, ArrowRight, Loader2, CheckCircle, X, Sparkles } from 'lucide-react';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 import { useAuth } from '@/lib/AuthContext';
 import { useAuthModal } from '@/lib/AuthModalContext';
 import { useTheme } from '@/lib/ThemeContext';
-import { SignIn, SignUp, useClerk } from '@clerk/clerk-react';
 
 export default function AuthModal() {
     const { open, tab, setTab, closeModal, handleSuccess } = useAuthModal();
     const { setUser, setIsAuthenticated } = useAuth();
     const { theme } = useTheme();
-    const { signIn, signUp } = useClerk();
     const isDark = theme === 'dark';
 
     const [email, setEmail]       = useState('');
@@ -21,13 +21,11 @@ export default function AuthModal() {
     const [success, setSuccess]   = useState('');
     const [mounted, setMounted]   = useState(false);
 
-    /* touch-drag state for mobile swipe-to-close */
     const dragStart = useRef(null);
     const sheetRef  = useRef(null);
 
     useEffect(() => { setError(''); setSuccess(''); }, [tab]);
 
-    /* mount animation */
     useEffect(() => {
         if (open) {
             requestAnimationFrame(() => requestAnimationFrame(() => setMounted(true)));
@@ -40,7 +38,6 @@ export default function AuthModal() {
         }
     }, [open]);
 
-    /* lock body scroll when open */
     useEffect(() => {
         if (open) {
             document.body.style.overflow = 'hidden';
@@ -63,71 +60,34 @@ export default function AuthModal() {
         setLoading(true);
         try {
             if (tab === 'login') {
-                // Use Clerk's signIn
-                const result = await signIn.create({
-                    identifier: email,
-                    password,
-                });
-                
-                if (result.status === 'complete') {
-                    // Sync with backend
-                    await syncUserWithBackend(result.user);
-                    setUser(result.user);
-                    setIsAuthenticated(true);
-                    handleSuccess();
-                } else {
-                    setError('Login failed. Please check your credentials.');
-                }
+                await signInWithEmailAndPassword(auth, email, password);
+                // onAuthStateChanged in AuthContext handles syncing + state update
+                handleSuccess();
             } else {
-                // Use Clerk's signUp
                 if (!fullName.trim()) {
                     setError('Please enter your full name.');
                     setLoading(false);
                     return;
                 }
-                
-                const result = await signUp.create({
-                    emailAddress: email,
-                    password,
-                    firstName: fullName.split(' ')[0],
-                    lastName: fullName.split(' ').slice(1).join(' '),
-                });
-                
-                if (result.status === 'complete') {
-                    // Sync with backend
-                    await syncUserWithBackend(result.user);
-                    setSuccess('Account created! You can now sign in.');
-                    setTab('login');
-                } else if (result.status === 'missing_requirements') {
-                    setError('Please complete all required fields.');
-                } else {
-                    setError('Signup failed. Please try again.');
-                }
+                const cred = await createUserWithEmailAndPassword(auth, email, password);
+                await updateProfile(cred.user, { displayName: fullName.trim() });
+                // Force token refresh so onAuthStateChanged picks up displayName
+                await cred.user.getIdToken(true);
+                setSuccess('Account created! Signing you in…');
+                handleSuccess();
             }
         } catch (err) {
-            console.error('Auth error:', err);
-            setError(err.message || 'Something went wrong.');
+            const msg = {
+                'auth/user-not-found':    'No account with that email.',
+                'auth/wrong-password':    'Incorrect password.',
+                'auth/email-already-in-use': 'An account with this email already exists.',
+                'auth/weak-password':     'Password must be at least 6 characters.',
+                'auth/invalid-email':     'Invalid email address.',
+                'auth/too-many-requests': 'Too many attempts. Please try again later.',
+            }[err.code] || err.message || 'Something went wrong.';
+            setError(msg);
         }
         setLoading(false);
-    };
-
-    const syncUserWithBackend = async (clerkUser) => {
-        try {
-            await fetch('/api/auth/sync-clerk', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    clerkUserId: clerkUser.id,
-                    email: clerkUser.emailAddresses[0]?.emailAddress,
-                    fullName: `${clerkUser.firstName} ${clerkUser.lastName}`.trim(),
-                    avatarUrl: clerkUser.imageUrl,
-                }),
-                credentials: 'include',
-            });
-        } catch (err) {
-            console.error('Backend sync error:', err);
-            // Non-critical, continue anyway
-        }
     };
 
     /* swipe-to-close (mobile sheet) */

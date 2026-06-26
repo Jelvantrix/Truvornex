@@ -8,7 +8,6 @@ import { fileURLToPath } from 'url';
 import pg from 'pg';
 import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
-import { clerkMiddleware } from '@clerk/express';
 import { serverError } from './utils.js';
 import { requireAdminAuth } from './security.js';
 import * as simon from './simon.js';
@@ -59,11 +58,6 @@ const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const PgSession = connectPgSimple(session);
 
 app.use(compression());
-
-// Clerk authentication middleware (if CLERK_SECRET_KEY is set)
-if (process.env.CLERK_SECRET_KEY) {
-    app.use(clerkMiddleware());
-}
 
 // Per-route size limits for security
 app.use('/api/auth', express.json({ limit: '10kb' }));
@@ -392,101 +386,86 @@ app.post('/api/auth/signup', async (req, res) => {
     }
 });
 
-// Clerk authentication sync endpoint
-app.post('/api/auth/sync-clerk', async (req, res) => {
-    const { clerkUserId, email, fullName, avatarUrl } = req.body;
-    
-    if (!clerkUserId || !email) {
-        return res.status(400).json({ error: 'Clerk user ID and email are required' });
-    }
-    
+// Firebase authentication sync endpoint
+app.post('/api/auth/firebase-sync', async (req, res) => {
+    const { idToken } = req.body;
+    if (!idToken) return res.status(400).json({ error: 'idToken is required' });
+
     try {
-        // Check if user exists by clerk_user_id
-        const { rows: existingUsers } = await pool.query(
-            'SELECT id, email, full_name, role, avatar_url FROM users WHERE clerk_user_id = $1',
-            [clerkUserId]
+        // Verify Firebase ID token via Google's public endpoint (no firebase-admin needed)
+        const verifyRes = await fetch(
+            `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${process.env.VITE_FIREBASE_API_KEY}`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idToken }),
+            }
         );
-        
+        if (!verifyRes.ok) return res.status(401).json({ error: 'Invalid Firebase token' });
+
+        const { users: fbUsers } = await verifyRes.json();
+        if (!fbUsers?.length) return res.status(401).json({ error: 'Firebase user not found' });
+
+        const fbUser = fbUsers[0];
+        const firebaseUid = fbUser.localId;
+        const email = fbUser.email?.toLowerCase();
+        const fullName = fbUser.displayName || email?.split('@')[0];
+        const avatarUrl = fbUser.photoUrl || null;
+
+        if (!email) return res.status(400).json({ error: 'Firebase user has no email' });
+
+        // Upsert user: match by firebase_uid first, then email
         let user;
-        
-        if (existingUsers.length > 0) {
-            // Update existing user
-            user = existingUsers[0];
+        const { rows: byUid } = await pool.query(
+            'SELECT id, email, full_name, role, avatar_url FROM users WHERE clerk_user_id = $1',
+            [firebaseUid]
+        );
+
+        if (byUid.length > 0) {
+            user = byUid[0];
             await pool.query(
-                `UPDATE users SET 
-                    email=$1, 
-                    full_name=$2, 
-                    avatar_url=$3, 
-                    updated_at=NOW() 
-                 WHERE clerk_user_id=$4`,
-                [email.toLowerCase(), fullName, avatarUrl, clerkUserId]
+                `UPDATE users SET email=$1, full_name=$2, avatar_url=$3, updated_at=NOW() WHERE id=$4`,
+                [email, fullName, avatarUrl, user.id]
             );
         } else {
-            // Check if user exists by email (migration case)
-            const { rows: emailUsers } = await pool.query(
+            const { rows: byEmail } = await pool.query(
                 'SELECT id, email, full_name, role, avatar_url FROM users WHERE email = $1',
-                [email.toLowerCase()]
+                [email]
             );
-            
-            if (emailUsers.length > 0) {
-                // Migrate existing user to Clerk
-                user = emailUsers[0];
+            if (byEmail.length > 0) {
+                user = byEmail[0];
                 await pool.query(
-                    `UPDATE users SET 
-                        clerk_user_id=$1,
-                        full_name=$2, 
-                        avatar_url=$3, 
-                        updated_at=NOW() 
-                     WHERE id=$4`,
-                    [clerkUserId, fullName, avatarUrl, user.id]
+                    `UPDATE users SET clerk_user_id=$1, full_name=$2, avatar_url=$3, updated_at=NOW() WHERE id=$4`,
+                    [firebaseUid, fullName, avatarUrl, user.id]
                 );
             } else {
-                // Create new user
                 const { rows: newUsers } = await pool.query(
-                    `INSERT INTO users (email, full_name, avatar_url, clerk_user_id, role) 
-                     VALUES ($1, $2, $3, $4, 'customer') 
+                    `INSERT INTO users (email, full_name, avatar_url, clerk_user_id, role)
+                     VALUES ($1, $2, $3, $4, 'customer')
                      RETURNING id, email, full_name, role, avatar_url`,
-                    [email.toLowerCase(), fullName, avatarUrl, clerkUserId]
+                    [email, fullName, avatarUrl, firebaseUid]
                 );
                 user = newUsers[0];
-                
-                // Auto-create wallet for new user
                 await pool.query(
                     `INSERT INTO wallets (user_id, balance, currency) VALUES ($1, 0, 'PKR') ON CONFLICT (user_id, currency) DO NOTHING`,
                     [user.id]
                 );
             }
         }
-        
-        // Create session with security features
-        const sessionUser = { 
-            id: user.id, 
-            clerk_user_id: clerkUserId,
-            email: user.email, 
-            full_name: user.full_name, 
-            role: user.role, 
+
+        const sessionUser = {
+            id: user.id,
+            email: user.email,
+            full_name: user.full_name,
+            role: user.role,
             avatar_url: user.avatar_url,
-            email_verified: true // Clerk handles email verification
+            email_verified: fbUser.emailVerified ?? false,
         };
-        
         await createSecureSession(req, sessionUser);
-        
         res.json({ user: sessionUser });
     } catch (err) {
-        console.error('Clerk sync error:', err);
-        
-        if (err.code === '23505') {
-            return res.status(409).json({ 
-                error: 'User already exists with this email',
-                code: 'EMAIL_EXISTS'
-            });
-        }
-        
-        res.status(500).json({ 
-            error: 'Failed to sync user with backend',
-            code: 'SYNC_ERROR',
-            details: isProd ? undefined : err.message
-        });
+        console.error('Firebase sync error:', err);
+        res.status(500).json({ error: 'Failed to sync user', details: isProd ? undefined : err.message });
     }
 });
 
