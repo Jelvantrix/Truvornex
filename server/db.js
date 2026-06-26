@@ -408,11 +408,21 @@ export async function initNeighborhoodTables() {
                 health_score NUMERIC(5,2) DEFAULT 50.00,
                 demand_index NUMERIC(5,2) DEFAULT 0.00,
                 active_providers INT DEFAULT 0,
+                center_lat NUMERIC(9,6),
+                center_lng NUMERIC(9,6),
                 created_at TIMESTAMPTZ DEFAULT NOW(),
                 updated_at TIMESTAMPTZ DEFAULT NOW()
             )
         `);
-        
+
+        // Migrate existing table: add columns if they don't exist
+        await client.query(`
+            ALTER TABLE neighborhood_zones
+                ADD COLUMN IF NOT EXISTS area TEXT,
+                ADD COLUMN IF NOT EXISTS center_lat NUMERIC(9,6),
+                ADD COLUMN IF NOT EXISTS center_lng NUMERIC(9,6)
+        `);
+
         // Clean up placeholder/wrong zones (Kallio, Default Neighborhood, etc.)
         await client.query(`
             DELETE FROM neighborhood_zones
