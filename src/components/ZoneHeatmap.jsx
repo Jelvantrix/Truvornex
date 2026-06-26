@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Users, AlertTriangle, Activity } from 'lucide-react';
+import useGeolocation from '@/hooks/useGeolocation';
 
 function heatColor(demand, supply) {
     if (demand > 70 && supply < 3) return { bg: 'rgba(239,68,68,0.10)', bar: '#ef4444', label: 'Surge', text: '#ef4444' };
@@ -9,8 +10,11 @@ function heatColor(demand, supply) {
     return                               { bg: 'rgba(99,102,241,0.08)', bar: '#818cf8', label: 'Calm',   text: '#818cf8' };
 }
 
-export default function ZoneHeatmap() {
+export default function ZoneHeatmap({ location: locationProp }) {
     const navigate = useNavigate();
+    // Accept location as prop (from Home) or get it independently
+    const { location: ownLocation } = useGeolocation();
+    const location = locationProp ?? ownLocation;
     const [zones, setZones]         = useState([]);
     const [loading, setLoading]     = useState(true);
     const [updatedAt, setUpdatedAt] = useState(null);
@@ -21,7 +25,10 @@ export default function ZoneHeatmap() {
     // Polling fallback — used when SSE is down
     const fetchFallback = useCallback(async () => {
         try {
-            const res = await fetch('/api/zones/heatmap');
+            const locParam = location?.length === 2
+                ? `?lat=${location[0]}&lng=${location[1]}`
+                : '';
+            const res = await fetch(`/api/zones/heatmap${locParam}`);
             if (!res.ok) return;
             const d = await res.json();
             if (d.zones) {
@@ -30,7 +37,7 @@ export default function ZoneHeatmap() {
                 setLoading(false);
             }
         } catch (_) {}
-    }, []);
+    }, [location]);
 
     useEffect(() => {
         let reconnectTimer = null;

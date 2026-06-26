@@ -413,16 +413,43 @@ export async function initNeighborhoodTables() {
             )
         `);
         
-        // Seed some default zones if table is empty
+        // Clean up placeholder/wrong zones (Kallio, Default Neighborhood, etc.)
+        await client.query(`
+            DELETE FROM neighborhood_zones
+            WHERE city NOT IN ('Karachi', 'Lahore', 'Islamabad', 'Rawalpindi', 'Peshawar', 'Quetta')
+               OR name IN ('Default Neighborhood', 'Kallio', 'Local')
+        `);
+
+        // Seed real Pakistani neighborhoods if table is empty or was just cleaned
         const { rows: existingZones } = await client.query('SELECT COUNT(*) FROM neighborhood_zones');
         if (parseInt(existingZones[0].count) === 0) {
             await client.query(`
                 INSERT INTO neighborhood_zones (name, area, city, health_score, demand_index, center_lat, center_lng) VALUES
-                ('DHA Phase 5',              'Defence Housing Authority', 'Karachi', 75.0, 60.0, 24.7917, 67.0517),
-                ('Clifton Block 9',          'Clifton',                  'Karachi', 82.0, 75.0, 24.8120, 67.0311),
-                ('Gulshan-e-Iqbal Block 10', 'Gulshan-e-Iqbal',          'Karachi', 68.0, 55.0, 24.9286, 67.0978),
-                ('North Nazimabad Block A',  'North Nazimabad',          'Karachi', 71.0, 65.0, 24.9447, 67.0648),
-                ('Gulistan-e-Johar',         'Gulistan-e-Johar',         'Karachi', 64.0, 58.0, 24.9214, 67.1328)
+                -- Karachi
+                ('DHA Phase 5',              'Defence',          'Karachi',   75, 60, 24.7917, 67.0517),
+                ('Clifton Block 9',           'Clifton',          'Karachi',   82, 72, 24.8120, 67.0311),
+                ('Gulshan-e-Iqbal',           'Gulshan',          'Karachi',   68, 55, 24.9286, 67.0978),
+                ('North Nazimabad',           'North Nazimabad',  'Karachi',   71, 65, 24.9447, 67.0648),
+                ('Gulistan-e-Johar',          'Johar',            'Karachi',   64, 58, 24.9214, 67.1328),
+                ('Saddar',                    'Saddar',           'Karachi',   60, 70, 24.8607, 67.0104),
+                ('PECHS',                     'PECHS',            'Karachi',   74, 62, 24.8680, 67.0600),
+                ('Malir',                     'Malir',            'Karachi',   55, 48, 24.8937, 67.2018),
+                -- Lahore
+                ('DHA Lahore Phase 6',        'DHA',              'Lahore',    78, 68, 31.4700, 74.3900),
+                ('Gulberg III',               'Gulberg',          'Lahore',    80, 74, 31.5120, 74.3370),
+                ('Model Town',                'Model Town',       'Lahore',    76, 66, 31.4841, 74.3220),
+                ('Johar Town',                'Johar Town',       'Lahore',    70, 60, 31.4697, 74.2728),
+                ('Bahria Town Lahore',         'Bahria Town',      'Lahore',    72, 55, 31.3656, 74.1905),
+                ('Township',                  'Township',         'Lahore',    62, 52, 31.5085, 74.2704),
+                -- Islamabad
+                ('F-7 Markaz',                'F-7',              'Islamabad', 85, 70, 33.7215, 73.0591),
+                ('G-9 Karachi Company',       'G-9',              'Islamabad', 74, 65, 33.6844, 73.0479),
+                ('Bahria Town Islamabad',      'Bahria Town',      'Islamabad', 77, 60, 33.5313, 73.1162),
+                ('DHA Islamabad',             'DHA',              'Islamabad', 79, 63, 33.5651, 73.1015),
+                ('Blue Area',                 'Blue Area',        'Islamabad', 68, 72, 33.7085, 73.0627),
+                -- Rawalpindi
+                ('Saddar Rawalpindi',         'Saddar',           'Rawalpindi',65, 58, 33.5979, 73.0451),
+                ('Bahria Town Rawalpindi',    'Bahria Town',      'Rawalpindi',73, 55, 33.5208, 73.1041)
             `);
         }
 

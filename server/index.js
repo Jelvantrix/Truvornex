@@ -101,10 +101,10 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: true, // HTTPS only, always
-        httpOnly: true, // no JS access
-        sameSite: 'strict', // no cross-site requests
-        maxAge: 8 * 60 * 60 * 1000, // 8 hours absolute max
+        secure: isProd,      // HTTPS only in production; HTTP allowed in dev
+        httpOnly: true,
+        sameSite: 'lax',     // 'strict' breaks new-tab navigation
+        maxAge: 8 * 60 * 60 * 1000,
     },
 }));
 
@@ -1367,30 +1367,63 @@ app.get('/api/providers/featured', async (req, res) => {
 /* ── Zone Heatmap ───────────────────────────────────────────────────────────── */
 
 app.get('/api/zones/heatmap', async (req, res) => {
+    const { lat, lng } = req.query;
     try {
-        const { rows } = await pool.query(`
-            SELECT
-                nz.id,
-                nz.name,
-                nz.city,
-                COALESCE(nz.health_score, 50)   AS health_score,
-                COALESCE(nz.demand_index, 0)     AS demand_index,
-                (SELECT COUNT(*)::int FROM provider_presence pp
-                 WHERE pp.current_zone_id::text = nz.id::text
-                   AND pp.is_online = true
-                   AND pp.last_heartbeat > NOW() - INTERVAL '10 minutes'
-                ) AS online_providers,
-                (SELECT COUNT(*)::int FROM bookings b
-                 WHERE b.zone_id::text = nz.id::text
-                   AND b.created_at > NOW() - INTERVAL '24 hours'
-                ) AS bookings_24h,
-                (SELECT COUNT(*)::int FROM emergency_requests er
-                 WHERE er.zone_id::text = nz.id::text AND er.status = 'open'
-                ) AS open_emergencies
-            FROM neighborhood_zones nz
-            ORDER BY nz.demand_index DESC, nz.health_score DESC
-            LIMIT 12
-        `);
+        let query, params;
+
+        if (lat && lng) {
+            // Return zones ordered by distance from user — nearest city first
+            query = `
+                SELECT
+                    nz.id, nz.name, nz.city,
+                    COALESCE(nz.health_score, 50)  AS health_score,
+                    COALESCE(nz.demand_index, 0)   AS demand_index,
+                    (SELECT COUNT(*)::int FROM provider_presence pp
+                     WHERE pp.current_zone_id::text = nz.id::text
+                       AND pp.is_online = true
+                       AND pp.last_heartbeat > NOW() - INTERVAL '10 minutes'
+                    ) AS online_providers,
+                    (SELECT COUNT(*)::int FROM bookings b
+                     WHERE b.zone_id::text = nz.id::text
+                       AND b.created_at > NOW() - INTERVAL '24 hours'
+                    ) AS bookings_24h,
+                    (SELECT COUNT(*)::int FROM emergency_requests er
+                     WHERE er.zone_id::text = nz.id::text AND er.status = 'open'
+                    ) AS open_emergencies
+                FROM neighborhood_zones nz
+                WHERE nz.geolocation IS NOT NULL
+                ORDER BY
+                    ST_Distance(nz.geolocation, ST_SetSRID(ST_MakePoint($1,$2),4326)::geography) ASC,
+                    nz.demand_index DESC
+                LIMIT 8
+            `;
+            params = [parseFloat(lng), parseFloat(lat)];
+        } else {
+            query = `
+                SELECT
+                    nz.id, nz.name, nz.city,
+                    COALESCE(nz.health_score, 50)  AS health_score,
+                    COALESCE(nz.demand_index, 0)   AS demand_index,
+                    (SELECT COUNT(*)::int FROM provider_presence pp
+                     WHERE pp.current_zone_id::text = nz.id::text
+                       AND pp.is_online = true
+                       AND pp.last_heartbeat > NOW() - INTERVAL '10 minutes'
+                    ) AS online_providers,
+                    (SELECT COUNT(*)::int FROM bookings b
+                     WHERE b.zone_id::text = nz.id::text
+                       AND b.created_at > NOW() - INTERVAL '24 hours'
+                    ) AS bookings_24h,
+                    (SELECT COUNT(*)::int FROM emergency_requests er
+                     WHERE er.zone_id::text = nz.id::text AND er.status = 'open'
+                    ) AS open_emergencies
+                FROM neighborhood_zones nz
+                ORDER BY nz.demand_index DESC, nz.health_score DESC
+                LIMIT 8
+            `;
+            params = [];
+        }
+
+        const { rows } = await pool.query(query, params);
         res.json({ zones: rows, updated_at: new Date().toISOString() });
     } catch (err) { serverError(res, err); }
 });

@@ -625,7 +625,7 @@ export default function Home() {
             <LiveNeighborhoodStats location={location} />
 
             {/* ── Zone Availability Heatmap ──────────────────────────────── */}
-            <ZoneHeatmap />
+            <ZoneHeatmap location={location} />
 
             {/* ── Stats ─────────────────────────────────────────────────── */}
             <section className="grid grid-cols-2 md:grid-cols-4 gap-2">
