@@ -56,8 +56,16 @@ export default function ZoneHeatmap({ location: locationProp }) {
         function connect() {
             if (esRef.current) esRef.current.close();
 
+            // Only connect if we have a location — otherwise wait for it
+            if (!location || location.length < 2) {
+                startPolling();
+                return;
+            }
+
+            const [lat, lng] = location;
+
             try {
-                const es = new EventSource('/api/realtime/zone-heatmap');
+                const es = new EventSource(`/api/realtime/zone-heatmap?lat=${lat}&lng=${lng}`);
                 esRef.current = es;
 
                 es.addEventListener('zone_heatmap', (e) => {
@@ -98,7 +106,7 @@ export default function ZoneHeatmap({ location: locationProp }) {
             stopPolling();
             esRef.current?.close();
         };
-    }, [fetchFallback]);
+    }, [fetchFallback, location]);
 
     if (loading) return (
         <section style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)' }}>

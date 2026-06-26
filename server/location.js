@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { pool } from './db.js';
+import { pool, getOrCreateZone } from './db.js';
 
 const router = Router();
 
@@ -24,27 +24,13 @@ router.post('/update', async (req, res) => {
             [lat, lng, userId]
         );
 
-        // Detect which zone the user falls into using PostGIS
-        const { rows: zones } = await pool.query(
-            `SELECT id, name, city, health_score, demand_index, active_providers
-             FROM neighborhood_zones
-             WHERE ST_DWithin(
-                 geolocation,
-                 ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography,
-                 radius_meters
-             )
-             ORDER BY health_score DESC
-             LIMIT 1`,
-            [lng, lat]
-        );
+        // Detect or auto-create the zone for these coordinates (works worldwide)
+        const detectedZone = await getOrCreateZone(lat, lng);
 
-        let detectedZone = null;
         let providersOnlineNearby = 0;
         let topCategories = [];
 
-        if (zones.length > 0) {
-            detectedZone = zones[0];
-            
+        if (detectedZone) {
             // Update user's detected zone
             await pool.query(
                 `UPDATE users SET detected_zone_id = $1 WHERE id = $2`,

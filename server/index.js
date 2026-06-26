@@ -162,6 +162,7 @@ async function initDb() {
 // Update last_seen on every authenticated request (Part 4 middleware)
 app.use((req, res, next) => {
     if (req.session?.user?.id) {
+        req.session.last_activity = Date.now();
         pool.query('UPDATE users SET last_seen_at = NOW() WHERE id = $1', [req.session.user.id]).catch(() => {});
     }
     next();

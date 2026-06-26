@@ -404,7 +404,7 @@ export async function initNeighborhoodTables() {
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 name TEXT NOT NULL,
                 area TEXT,
-                city TEXT DEFAULT 'Karachi',
+                city TEXT DEFAULT NULL,
                 health_score NUMERIC(5,2) DEFAULT 50.00,
                 demand_index NUMERIC(5,2) DEFAULT 0.00,
                 active_providers INT DEFAULT 0,
@@ -422,46 +422,6 @@ export async function initNeighborhoodTables() {
                 ADD COLUMN IF NOT EXISTS center_lat NUMERIC(9,6),
                 ADD COLUMN IF NOT EXISTS center_lng NUMERIC(9,6)
         `);
-
-        // Clean up placeholder/wrong zones (Kallio, Default Neighborhood, etc.)
-        await client.query(`
-            DELETE FROM neighborhood_zones
-            WHERE city NOT IN ('Karachi', 'Lahore', 'Islamabad', 'Rawalpindi', 'Peshawar', 'Quetta')
-               OR name IN ('Default Neighborhood', 'Kallio', 'Local')
-        `);
-
-        // Seed real Pakistani neighborhoods if table is empty or was just cleaned
-        const { rows: existingZones } = await client.query('SELECT COUNT(*) FROM neighborhood_zones');
-        if (parseInt(existingZones[0].count) === 0) {
-            await client.query(`
-                INSERT INTO neighborhood_zones (name, area, city, health_score, demand_index, center_lat, center_lng) VALUES
-                -- Karachi
-                ('DHA Phase 5',              'Defence',          'Karachi',   75, 60, 24.7917, 67.0517),
-                ('Clifton Block 9',           'Clifton',          'Karachi',   82, 72, 24.8120, 67.0311),
-                ('Gulshan-e-Iqbal',           'Gulshan',          'Karachi',   68, 55, 24.9286, 67.0978),
-                ('North Nazimabad',           'North Nazimabad',  'Karachi',   71, 65, 24.9447, 67.0648),
-                ('Gulistan-e-Johar',          'Johar',            'Karachi',   64, 58, 24.9214, 67.1328),
-                ('Saddar',                    'Saddar',           'Karachi',   60, 70, 24.8607, 67.0104),
-                ('PECHS',                     'PECHS',            'Karachi',   74, 62, 24.8680, 67.0600),
-                ('Malir',                     'Malir',            'Karachi',   55, 48, 24.8937, 67.2018),
-                -- Lahore
-                ('DHA Lahore Phase 6',        'DHA',              'Lahore',    78, 68, 31.4700, 74.3900),
-                ('Gulberg III',               'Gulberg',          'Lahore',    80, 74, 31.5120, 74.3370),
-                ('Model Town',                'Model Town',       'Lahore',    76, 66, 31.4841, 74.3220),
-                ('Johar Town',                'Johar Town',       'Lahore',    70, 60, 31.4697, 74.2728),
-                ('Bahria Town Lahore',         'Bahria Town',      'Lahore',    72, 55, 31.3656, 74.1905),
-                ('Township',                  'Township',         'Lahore',    62, 52, 31.5085, 74.2704),
-                -- Islamabad
-                ('F-7 Markaz',                'F-7',              'Islamabad', 85, 70, 33.7215, 73.0591),
-                ('G-9 Karachi Company',       'G-9',              'Islamabad', 74, 65, 33.6844, 73.0479),
-                ('Bahria Town Islamabad',      'Bahria Town',      'Islamabad', 77, 60, 33.5313, 73.1162),
-                ('DHA Islamabad',             'DHA',              'Islamabad', 79, 63, 33.5651, 73.1015),
-                ('Blue Area',                 'Blue Area',        'Islamabad', 68, 72, 33.7085, 73.0627),
-                -- Rawalpindi
-                ('Saddar Rawalpindi',         'Saddar',           'Rawalpindi',65, 58, 33.5979, 73.0451),
-                ('Bahria Town Rawalpindi',    'Bahria Town',      'Rawalpindi',73, 55, 33.5208, 73.1041)
-            `);
-        }
 
         // Community posts table
         await client.query(`
@@ -1294,5 +1254,92 @@ export async function refreshZoneStats() {
         await pool.query(`SELECT pg_notify('zone_heatmap', 'refresh')`);
     } catch (err) {
         console.error('[refreshZoneStats] error:', err.message);
+    }
+}
+
+// ── Auto-Zone Creation ────────────────────────────────────────────────────────
+// This is the "on-demand geofencing" system.
+// Given any coordinates on Earth, it finds the matching zone or creates one
+// by reverse-geocoding via Nominatim (OpenStreetMap, free, no API key needed).
+// This makes the platform work worldwide without any manual zone setup.
+
+export async function getOrCreateZone(lat, lng) {
+    try {
+        // 1. Check if coordinates already fall inside an existing zone
+        const { rows: existing } = await pool.query(
+            `SELECT id, name, city, health_score, demand_index, active_providers
+             FROM neighborhood_zones
+             WHERE ST_DWithin(
+                 geolocation,
+                 ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography,
+                 radius_meters
+             )
+             ORDER BY health_score DESC
+             LIMIT 1`,
+            [lng, lat]
+        );
+        if (existing.length > 0) return existing[0];
+
+        // 2. No zone found — reverse-geocode via Nominatim
+        const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=13`;
+        let zoneName = 'Local Area';
+        let cityName = 'Unknown';
+        let areaName = null;
+
+        try {
+            const geoRes = await fetch(nominatimUrl, {
+                headers: { 'User-Agent': 'Truvornex/1.0 (hyperlocal-services-app)' },
+                signal: AbortSignal.timeout(5000),
+            });
+            if (geoRes.ok) {
+                const geo = await geoRes.json();
+                const addr = geo.address || {};
+                // Build neighborhood name from most specific available field
+                zoneName = addr.neighbourhood
+                    || addr.suburb
+                    || addr.village
+                    || addr.town
+                    || addr.city_district
+                    || addr.county
+                    || geo.name
+                    || 'Local Area';
+                cityName = addr.city || addr.town || addr.village || addr.state || 'Unknown';
+                areaName = addr.suburb || addr.district || null;
+            }
+        } catch (geoErr) {
+            // Nominatim failed (timeout, network) — still create a generic zone
+            console.warn('[getOrCreateZone] Nominatim failed, creating generic zone:', geoErr.message);
+        }
+
+        // 3. Insert the new zone — ON CONFLICT protects against duplicate concurrent inserts
+        const { rows: created } = await pool.query(
+            `INSERT INTO neighborhood_zones
+                (name, area, city, center_lat, center_lng, geolocation, radius_meters, health_score, demand_index)
+             VALUES ($1, $2, $3, $4, $5, ST_SetSRID(ST_MakePoint($5, $4), 4326)::geography, 5000, 50, 0)
+             ON CONFLICT DO NOTHING
+             RETURNING id, name, city, health_score, demand_index, active_providers`,
+            [zoneName, areaName, cityName, lat, lng]
+        );
+
+        // ON CONFLICT DO NOTHING returns 0 rows if a race condition inserted first — re-query
+        if (created.length > 0) return created[0];
+
+        const { rows: refetch } = await pool.query(
+            `SELECT id, name, city, health_score, demand_index, active_providers
+             FROM neighborhood_zones
+             WHERE ST_DWithin(
+                 geolocation,
+                 ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography,
+                 radius_meters
+             )
+             ORDER BY health_score DESC
+             LIMIT 1`,
+            [lng, lat]
+        );
+        return refetch[0] || null;
+
+    } catch (err) {
+        console.error('[getOrCreateZone] error:', err.message);
+        return null;
     }
 }

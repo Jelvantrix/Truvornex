@@ -7,7 +7,7 @@
  */
 
 import pg from 'pg';
-import { pool } from './db.js';
+import { pool, getOrCreateZone } from './db.js';
 
 // ── SSE client registry ────────────────────────────────────────────────────────
 // Map<channel, Set<{id, res, userId?}>>
@@ -141,7 +141,45 @@ export async function installTriggers() {
 }
 
 // ── Zone heatmap real-time query ───────────────────────────────────────────────
-async function fetchZoneHeatmapData() {
+async function fetchZoneHeatmapData(lat, lng) {
+    // If coordinates provided: auto-create zone for this location if needed,
+    // then return nearby zones within 50km ordered by distance.
+    // If no coordinates: return top zones globally (admin/fallback only).
+    if (lat != null && lng != null) {
+        await getOrCreateZone(lat, lng);
+        const { rows } = await pool.query(`
+            SELECT
+                nz.id, nz.name, nz.city,
+                COALESCE(nz.health_score, 50)  AS health_score,
+                COALESCE(nz.demand_index, 0)   AS demand_index,
+                (SELECT COUNT(*)::int FROM provider_presence pp
+                 WHERE pp.current_zone_id::text = nz.id::text
+                   AND pp.is_online = true
+                   AND pp.last_heartbeat > NOW() - INTERVAL '10 minutes'
+                ) AS online_providers,
+                (SELECT COUNT(*)::int FROM bookings b
+                 WHERE b.zone_id::text = nz.id::text
+                   AND b.created_at > NOW() - INTERVAL '24 hours'
+                ) AS bookings_24h,
+                (SELECT COUNT(*)::int FROM emergency_requests er
+                 WHERE er.zone_id::text = nz.id::text AND er.status = 'open'
+                ) AS open_emergencies
+            FROM neighborhood_zones nz
+            WHERE nz.geolocation IS NOT NULL
+              AND ST_DWithin(
+                  nz.geolocation,
+                  ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography,
+                  50000
+              )
+            ORDER BY
+                ST_Distance(nz.geolocation, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography) ASC,
+                nz.demand_index DESC
+            LIMIT 8
+        `, [parseFloat(lng), parseFloat(lat)]);
+        return { zones: rows, updated_at: new Date().toISOString() };
+    }
+
+    // Fallback — no location (shouldn't happen in normal use)
     const { rows } = await pool.query(`
         SELECT
             nz.id, nz.name, nz.city,
@@ -161,7 +199,7 @@ async function fetchZoneHeatmapData() {
             ) AS open_emergencies
         FROM neighborhood_zones nz
         ORDER BY nz.demand_index DESC, nz.health_score DESC
-        LIMIT 12
+        LIMIT 8
     `);
     return { zones: rows, updated_at: new Date().toISOString() };
 }
@@ -182,13 +220,17 @@ async function fetchPlatformStats() {
 
 // ── SSE: Zone Heatmap stream (public, no auth required) ───────────────────────
 export async function handleZoneHeatmapStream(req, res) {
+    const lat = req.query.lat ? parseFloat(req.query.lat) : null;
+    const lng = req.query.lng ? parseFloat(req.query.lng) : null;
+
     sseHeaders(res);
-    const client = { id: Date.now() + Math.random(), res };
+    // Store lat/lng on client so the NOTIFY broadcast can send each client their own data
+    const client = { id: Date.now() + Math.random(), res, lat, lng };
     addClient('zone_heatmap', client);
 
     // Send snapshot immediately
     try {
-        const data = await fetchZoneHeatmapData();
+        const data = await fetchZoneHeatmapData(lat, lng);
         sseWrite(res, 'zone_heatmap', data);
     } catch (err) { console.error('[Realtime] zone heatmap init error:', err.message); }
 
@@ -341,10 +383,13 @@ export async function handleNeighborhoodStatsStream(req, res) {
 export async function startRealtimeListeners() {
     // Zone heatmap: push to all zone_heatmap SSE clients when any zone row changes
     await ensureListener('zone_heatmap', async () => {
-        try {
-            const data = await fetchZoneHeatmapData();
-            broadcast('zone_heatmap', 'zone_heatmap', data);
-        } catch (_) {}
+        // Each client has their own location — send each their own localized data
+        for (const client of clients.get('zone_heatmap') ?? []) {
+            try {
+                const data = await fetchZoneHeatmapData(client.lat, client.lng);
+                sseWrite(client.res, 'zone_heatmap', data);
+            } catch (_) {}
+        }
     });
 
     // Booking updates: push only to the affected user's SSE stream

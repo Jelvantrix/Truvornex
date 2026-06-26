@@ -532,12 +532,22 @@ async function checkNewRecipientHold(senderId, recipientId) {
 // ============================================================================
 
 async function createSecureSession(req, user) {
+    // If a valid session already exists for this exact user, just refresh it — don't regenerate.
+    // Regenerating on every firebase-sync call (which runs on every page load) destroys the
+    // existing session cookie and causes a logout on refresh.
+    if (req.session?.user?.id === user.id) {
+        req.session.user = user;
+        req.session.last_activity = Date.now();
+        return Promise.resolve();
+    }
+
     return new Promise((resolve, reject) => {
         req.session.regenerate((err) => {
             if (err) return reject(err);
             
             req.session.user = user;
             req.session.created_at = Date.now();
+            req.session.last_activity = Date.now();
             req.session.ip = req.ip;
             req.session.ua = req.headers['user-agent'];
             
