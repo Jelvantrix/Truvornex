@@ -250,6 +250,8 @@ html.dark .border-zinc-200.rounded-xl { border-color: var(--color-border) !impor
 @layer components {
 
     .btn-primary {
+        position: relative;
+        isolation: isolate;
         background: var(--color-primary);
         color: var(--color-on-primary);
         border-radius: 8px;
@@ -262,10 +264,12 @@ html.dark .border-zinc-200.rounded-xl { border-color: var(--color-border) !impor
         cursor: pointer;
         will-change: transform;
     }
-    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.55); }
+    .btn-primary:hover { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.55); }
     .btn-primary:active { transform: scale(0.975) translateY(0); opacity: 1; box-shadow: none; }
 
     .btn-ghost {
+        position: relative;
+        isolation: isolate;
         background: transparent;
         color: var(--color-text-muted);
         border-radius: 7px;
@@ -277,6 +281,71 @@ html.dark .border-zinc-200.rounded-xl { border-color: var(--color-border) !impor
         border: none;
     }
     .btn-ghost:hover { background: var(--color-surface-high); color: var(--color-primary); }
+
+    /* ── Monochrome aura controls ─────────────────────────────────
+       A quiet, moving edge-light gives primary controls the same
+       dimensional energy as the rest of the platform without
+       introducing a new accent color. */
+    .aura-button,
+    .btn-primary,
+    .btn-ghost,
+    button[class*="bg-"] {
+        position: relative;
+        isolation: isolate;
+    }
+    .aura-button::before,
+    .btn-primary::before,
+    .btn-ghost::before,
+    button[class*="bg-"]::before {
+        content: '';
+        position: absolute;
+        inset: -1px;
+        z-index: -1;
+        border-radius: inherit;
+        background: conic-gradient(
+            from 0deg,
+            transparent 0deg,
+            rgba(255,255,255,0.04) 42deg,
+            rgba(255,255,255,0.42) 78deg,
+            rgba(255,255,255,0.04) 116deg,
+            transparent 170deg,
+            transparent 360deg
+        );
+        padding: 1px;
+        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        mask-composite: exclude;
+        opacity: 0.7;
+        filter: blur(0.1px);
+        animation: auraOrbit 8s linear infinite;
+        pointer-events: none;
+    }
+    .aura-button::after,
+    .btn-primary::after,
+    .btn-ghost::after,
+    button[class*="bg-"]::after {
+        content: '';
+        position: absolute;
+        inset: -10px;
+        z-index: -2;
+        border-radius: inherit;
+        background: radial-gradient(ellipse at center, rgba(255,255,255,0.17), transparent 68%);
+        opacity: 0.24;
+        filter: blur(10px);
+        animation: auraPulse 4.5s ease-in-out infinite;
+        pointer-events: none;
+    }
+    .aura-button:hover::before,
+    .btn-primary:hover::before,
+    .btn-ghost:hover::before,
+    button[class*="bg-"]:hover::before { opacity: 1; animation-duration: 4.5s; }
+    .aura-button:hover::after,
+    .btn-primary:hover::after,
+    .btn-ghost:hover::after,
+    button[class*="bg-"]:hover::after { opacity: 0.62; }
+    @keyframes auraOrbit { to { transform: rotate(360deg); } }
+    @keyframes auraPulse { 0%,100% { transform: scale(0.96); opacity: 0.18; } 50% { transform: scale(1.04); opacity: 0.52; } }
 
     /* Cards */
     .card {

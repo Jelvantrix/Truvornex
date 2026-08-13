@@ -5,42 +5,43 @@ import { ArrowRight } from 'lucide-react';
 const SLIDES = [
     {
         id: 0,
-        overline: 'Welcome',
-        title: 'Your neighborhood,\nconnected',
-        body: 'Truvornex connects you with trusted local service providers — powered by Simon AI, built for your community.',
+        overline: 'The neighborhood operating system',
+        title: 'The infrastructure\nof local life',
+        body: 'Truvornex is the trust, service, and coordination layer for every neighborhood — not another marketplace.',
     },
     {
         id: 1,
-        overline: 'One App',
-        title: 'Every home need,\ncovered',
-        body: 'From emergency plumbing at 2 am to weekly cleaning — book any local service 24/7, in seconds.',
+        overline: 'Portable trust',
+        title: 'Every provider,\nrecognized',
+        body: 'Portable identity, verifiable work, and reputation that compounds across the places people live.',
     },
     {
         id: 2,
-        overline: 'Community First',
-        title: 'Trust built by\nneighbors',
-        body: "Finding trustworthy help shouldn't take hours. Real people, real reviews, real results.",
+        overline: 'One connected layer',
+        title: 'Every neighborhood,\ncoordinated',
+        body: 'Services, transport, commerce, care, and community moving through one intelligent local network.',
     },
     {
         id: 3,
-        overline: 'Get Started',
-        title: 'Ready to join your\nneighborhood?',
-        body: 'Free to join. No hidden fees. It only takes 30 seconds to get started.',
+        overline: 'The next local standard',
+        title: 'A new layer for\neveryday life',
+        body: 'Built to make local economies more trusted, visible, and alive. Enter the network when you are ready.',
         isCta: true,
     },
 ];
 
-const SLIDE_DURATION = 5200; // ms per slide before auto-advance
+const SLIDE_DURATION = 6200; // ms per slide before auto-advance
 
 /* ─── Logo particle generator ────────────────────────────────── */
 // Fills the favicon logo shape (32×32) with a dense grid of particles.
 // Each line is a thick filled band; the circle is a solid filled disk.
 // Result: a bold particle sculpture, not a wireframe outline.
 function generateParticles(W, H) {
-    // Large, centered logo — unmissable on every screen size
-    const scale = Math.min(W * 0.55, H * 0.42) / 32;
+    // Keep the mark prominent without competing with the slide copy below.
+    const isCompact = W < 600;
+    const scale = Math.min(W * (isCompact ? 0.48 : 0.42), H * (isCompact ? 0.34 : 0.32)) / 32;
     const ox = W * 0.5;   // always centered horizontally
-    const oy = H * 0.26;  // upper-center vertically — kept high so text never overlaps
+    const oy = H * (isCompact ? 0.29 : 0.30);
     const STEP     = 0.34;       // grid spacing in logo-space units
     const HALF_T   = 1.5;        // half-thickness of each line band
 
@@ -88,8 +89,8 @@ function generateParticles(W, H) {
         y:           p.ty + (Math.random() - 0.5) * H * 0.55,
         vx:          0,
         vy:          0,
-        size:        2.0 + Math.random() * 2.4,       // large, unmissable
-        baseOpacity: 0.24 + Math.random() * 0.34,     // bright and visible
+        size:        1.25 + Math.random() * 1.65,
+        baseOpacity: 0.34 + Math.random() * 0.38,
         phase:       Math.random() * Math.PI * 2,     // offset for breathing
     }));
 }
@@ -112,13 +113,22 @@ function LogoParticles() {
             mouseY: -9999,
             ripples: [],   // [ { x, y, r, maxR, str } ]
             raf: null,
+            viewport: { width: window.innerWidth, height: window.innerHeight },
         };
 
         // Resize → regenerate particle targets
         const resize = () => {
-            canvas.width  = window.innerWidth;
-            canvas.height = window.innerHeight;
-            const fresh = generateParticles(canvas.width, canvas.height);
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            canvas.width = Math.round(width * dpr);
+            canvas.height = Math.round(height * dpr);
+            canvas.style.width = `${width}px`;
+            canvas.style.height = `${height}px`;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            ctx.imageSmoothingEnabled = true;
+            state.viewport = { width, height };
+            const fresh = generateParticles(width, height);
             // Preserve current positions if particles already exist
             if (state.particles.length === fresh.length) {
                 fresh.forEach((p, i) => {
@@ -146,7 +156,7 @@ function LogoParticles() {
 
         // Ripple on click or tap — radiating wave of repulsion
         const spawnRipple = (x, y) => {
-            const maxR = Math.min(canvas.width, canvas.height) * 0.55;
+            const maxR = Math.min(state.viewport.width, state.viewport.height) * 0.55;
             state.ripples.push({ x, y, r: 0, maxR, str: 9 });
             // Cap to 4 simultaneous ripples to stay performant
             if (state.ripples.length > 4) state.ripples.shift();
@@ -165,14 +175,14 @@ function LogoParticles() {
 
         // Automatic ripples from logo centre — make interactivity unmistakably obvious
         const initRipple = setTimeout(() => {
-            const cx = canvas.width  * 0.5;
-            const cy = canvas.height * 0.26;
-            state.ripples.push({ x: cx, y: cy, r: 0, maxR: Math.min(canvas.width, canvas.height) * 0.60, str: 14 });
+            const cx = state.viewport.width * 0.5;
+            const cy = state.viewport.height * (state.viewport.width < 600 ? 0.29 : 0.30);
+            state.ripples.push({ x: cx, y: cy, r: 0, maxR: Math.min(state.viewport.width, state.viewport.height) * 0.60, str: 14 });
         }, 900);
         const autoRippleId = setInterval(() => {
-            const cx = canvas.width  * 0.5;
-            const cy = canvas.height * 0.26;
-            state.ripples.push({ x: cx, y: cy, r: 0, maxR: Math.min(canvas.width, canvas.height) * 0.56, str: 10 });
+            const cx = state.viewport.width * 0.5;
+            const cy = state.viewport.height * (state.viewport.width < 600 ? 0.29 : 0.30);
+            state.ripples.push({ x: cx, y: cy, r: 0, maxR: Math.min(state.viewport.width, state.viewport.height) * 0.56, str: 10 });
             if (state.ripples.length > 4) state.ripples.shift();
         }, 4000);
 
@@ -188,7 +198,7 @@ function LogoParticles() {
 
         // 60 FPS animation loop — breathing + mouse repulsion + ripple wave
         const animate = (now) => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, state.viewport.width, state.viewport.height);
 
             // Advance and expire ripples
             for (const rp of state.ripples) rp.r += WAVE_SPEED;
@@ -408,30 +418,21 @@ export default function IntroFlow({ onComplete }) {
             {/* ── Particle logo background ─────────── */}
             <LogoParticles />
 
-            {/* ── Interaction hint — fades in then out ─ */}
+            {/* ── Brand signal — explain the layer before the interface ── */}
             <div
-                aria-hidden="true"
+                aria-label="Truvornex, the neighborhood operating system"
                 style={{
-                    position: 'absolute',
-                    top: '52%', left: '50%', transform: 'translateX(-50%)',
-                    zIndex: 8, textAlign: 'center', pointerEvents: 'none',
-                    whiteSpace: 'nowrap',
-                    animation: 'hintFadeInOut 4.5s ease forwards 1.2s',
-                    opacity: 0,
+                    position: 'absolute', top: 'max(24px, env(safe-area-inset-top, 24px))',
+                    left: 'clamp(24px, 6vw, 56px)', zIndex: 30,
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    color: 'rgba(255,255,255,0.52)',
+                    fontSize: 10, fontWeight: 700, letterSpacing: '0.16em',
+                    textTransform: 'uppercase',
+                    fontFamily: "'Inter', system-ui, sans-serif",
                 }}
             >
-                <style>{`@keyframes hintFadeInOut{0%{opacity:0}12%{opacity:1}72%{opacity:1}100%{opacity:0}}`}</style>
-                <div style={{
-                    display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center',
-                    marginBottom: 6,
-                }}>
-                    <div style={{ width: 18, height: 18, borderRadius: '50%', border: '1.5px solid rgba(255,255,255,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(255,255,255,0.6)' }} />
-                    </div>
-                    <span style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 600, color: 'rgba(255,255,255,0.38)', fontFamily: "'Inter', system-ui, sans-serif" }}>
-                        Move cursor · Tap to interact
-                    </span>
-                </div>
+                <span style={{ width: 22, height: 1, background: 'rgba(255,255,255,0.42)' }} />
+                <span>Truvornex</span>
             </div>
 
             {/* ── Ambient gradient — white top light ── */}
@@ -547,7 +548,7 @@ export default function IntroFlow({ onComplete }) {
                 }}
             >
                 {/* Progress dots with animated fill */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '0 auto 16px', maxWidth: 320 }}>
                     {SLIDES.map((_, i) => (
                         <ProgressDot
                             key={i}
@@ -559,18 +560,20 @@ export default function IntroFlow({ onComplete }) {
                     ))}
                 </div>
 
-                {/* CTA button — full width */}
+                {/* CTA button — intentionally compact and centered */}
                 <button
+                    className="aura-button"
                     onClick={() => next(true)}
                     style={{
-                        width: '100%',
-                        height: 'clamp(50px, 13vw, 56px)',
-                        borderRadius: 14,
-                        fontSize: 'clamp(14px, 3.5vw, 16px)',
+                        display: 'flex',
+                        width: 'min(100%, 320px)',
+                        height: 'clamp(46px, 11vw, 52px)',
+                        margin: '0 auto',
+                        borderRadius: 12,
+                        fontSize: 'clamp(13px, 3.2vw, 15px)',
                         fontWeight: 600,
                         fontFamily: "'Inter', system-ui, sans-serif",
                         letterSpacing: '-0.02em',
-                        display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: 8,
