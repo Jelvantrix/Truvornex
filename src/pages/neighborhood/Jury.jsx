@@ -5,9 +5,9 @@ import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/api/supabaseClient';
 
 const VOTE_OPTIONS = [
-    { value: 'for',     label: 'For Complainant', Icon: ThumbsUp,   cls: 'text-emerald-600 border-emerald-200 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-900/20' },
-    { value: 'against', label: 'For Provider',    Icon: ThumbsDown, cls: 'text-red-500 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20' },
-    { value: 'abstain', label: 'Abstain',         Icon: Minus,      cls: 'text-zinc-400 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800' },
+    { value: 'for',     label: 'For Complainant', Icon: ThumbsUp,   color: 'var(--color-success)' },
+    { value: 'against', label: 'For Provider',    Icon: ThumbsDown, color: 'var(--color-error)' },
+    { value: 'abstain', label: 'Abstain',         Icon: Minus,      color: 'var(--color-text-muted)' },
 ];
 
 function timeAgo(ts) {
@@ -72,21 +72,26 @@ export default function Jury() {
         <div className="space-y-6 pb-8 max-w-2xl">
             {/* Header */}
             <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-2xl bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 flex items-center justify-center">
-                    <ShieldCheck className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                <div className="h-10 w-10 rounded-2xl flex items-center justify-center card-lightning-subtle"
+                    style={{ backgroundColor: 'rgba(var(--color-primary),0.12)', border: '1px solid var(--color-border)' }}>
+                    <ShieldCheck className="h-5 w-5" style={{ color: 'var(--color-primary)' }} />
                 </div>
                 <div>
-                    <h1 className="font-bold text-2xl tracking-tight text-zinc-900 dark:text-white">Neighborhood Jury</h1>
-                    <p className="text-zinc-400 text-sm mt-0.5">Peer-reviewed dispute resolution — earn time credits</p>
+                    <h1 className="font-bold text-2xl tracking-tight" style={{ color: 'var(--color-primary)' }}>Neighborhood Jury</h1>
+                    <p className="text-sm mt-0.5" style={{ color: 'var(--color-text-muted)' }}>Peer-reviewed dispute resolution — earn time credits</p>
                 </div>
             </div>
 
             {/* How it works */}
-            <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-zinc-500 shrink-0 mt-0.5" />
+            <div className="rounded-2xl p-4 flex items-start gap-3 shimmer"
+                style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 card-lightning-subtle"
+                    style={{ backgroundColor: 'rgba(var(--color-info),0.12)', border: '1px solid var(--color-border)' }}>
+                    <AlertCircle className="h-5 w-5" style={{ color: 'var(--color-info)' }} />
+                </div>
                 <div>
-                    <p className="font-semibold text-sm text-zinc-900 dark:text-white">How the jury works</p>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                    <p className="font-semibold text-sm" style={{ color: 'var(--color-primary)' }}>How the jury works</p>
+                    <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
                         Disputes between customers and providers are resolved by a randomly selected panel of community members.
                         All identities are anonymized. Quorum is reached at 3 votes. Each vote earns 1 time credit.
                     </p>
@@ -94,9 +99,13 @@ export default function Jury() {
             </div>
 
             {/* Earn credits callout */}
-            <div className="flex items-center gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-2xl p-4">
-                <Star className="h-5 w-5 text-amber-500 shrink-0" />
-                <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+            <div className="flex items-center gap-3 rounded-2xl p-4 shimmer"
+                style={{ backgroundColor: 'rgba(var(--color-warning),0.08)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 card-lightning-subtle"
+                    style={{ backgroundColor: 'rgba(var(--color-warning),0.12)', border: '1px solid var(--color-border)' }}>
+                    <Star className="h-5 w-5" style={{ color: 'var(--color-warning)' }} />
+                </div>
+                <p className="text-sm font-medium" style={{ color: 'var(--color-primary)' }}>
                     Earn 1 time credit for every dispute you vote on
                 </p>
             </div>
@@ -105,14 +114,19 @@ export default function Jury() {
             {loading ? (
                 <div className="space-y-4">
                     {Array.from({ length: 3 }).map((_, i) => (
-                        <div key={i} className="skeleton-wave h-140 rounded-2xl" />
+                        <div key={i} className="h-140 rounded-2xl shimmer"
+                            style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)' }} />
                     ))}
                 </div>
             ) : disputes.length === 0 ? (
-                <div className="text-center py-16 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl">
-                    <ShieldCheck className="h-10 w-10 mx-auto mb-3 text-zinc-200 dark:text-zinc-700" strokeWidth={1.5} />
-                    <p className="text-zinc-400 font-medium">No open disputes</p>
-                    <p className="text-xs text-zinc-400 mt-1">All disputes have been resolved — check back later</p>
+                <div className="text-center py-16 rounded-2xl shimmer"
+                    style={{ backgroundColor: 'var(--color-surface)', border: '1px dashed var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                    <div className="h-16 w-16 rounded-2xl flex items-center justify-center mx-auto mb-3 card-lightning-subtle"
+                        style={{ backgroundColor: 'rgba(var(--color-primary),0.12)', border: '1px solid var(--color-border)' }}>
+                        <ShieldCheck className="h-10 w-10" style={{ color: 'var(--color-text-muted)' }} strokeWidth={1.5} />
+                    </div>
+                    <p className="font-medium" style={{ color: 'var(--color-text-muted)' }}>No open disputes</p>
+                    <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>All disputes have been resolved — check back later</p>
                 </div>
             ) : (
                 <div className="space-y-4">
@@ -120,21 +134,23 @@ export default function Jury() {
                         const voted = myVotes[d.id];
                         const evidence = Array.isArray(d.evidence_urls) ? d.evidence_urls : [];
                         return (
-                            <div key={d.id} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden">
+                            <div key={d.id} className="rounded-2xl overflow-hidden hover-lift card-lightning-subtle"
+                                style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
                                 <div className="p-5">
                                     <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
                                         <div className="flex items-center gap-2 flex-wrap">
                                             <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${
                                                 d.status === 'voting'
-                                                    ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
-                                                    : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                                            }`}>
+                                                    ? 'bg-[rgba(var(--color-warning),0.15)]'
+                                                    : 'bg-[rgba(var(--color-info),0.15)]'
+                                            }`}
+                                                style={d.status === 'voting' ? { color: 'var(--color-warning)' } : { color: 'var(--color-info)' }}>
                                                 {d.status === 'voting' ? 'Voting in Progress' : 'Open for Review'}
                                             </span>
-                                            <span className="text-[10px] text-zinc-400">{timeAgo(d.created_at)}</span>
+                                            <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>{timeAgo(d.created_at)}</span>
                                         </div>
                                         {evidence.length > 0 && (
-                                            <span className="text-[10px] text-zinc-400 flex items-center gap-1">
+                                            <span className="text-[10px] flex items-center gap-1" style={{ color: 'var(--color-text-muted)' }}>
                                                 <AlertCircle className="h-3 w-3" />
                                                 {evidence.length} evidence item{evidence.length !== 1 ? 's' : ''}
                                             </span>
@@ -143,37 +159,42 @@ export default function Jury() {
 
                                     {d.category && (
                                         <p className="text-sm mb-1">
-                                            <span className="font-semibold text-zinc-900 dark:text-white">Category:</span>
-                                            <span className="text-zinc-600 dark:text-zinc-400 ml-1 capitalize">{d.category}</span>
+                                            <span className="font-semibold" style={{ color: 'var(--color-primary)' }}>Category:</span>
+                                            <span className="ml-1 capitalize" style={{ color: 'var(--color-text-muted)' }}>{d.category}</span>
                                         </p>
                                     )}
-                                    <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed line-clamp-4">
+                                    <p className="text-sm leading-relaxed line-clamp-4" style={{ color: 'var(--color-text-muted)' }}>
                                         {d.description}
                                     </p>
                                 </div>
 
-                                <div className="border-t border-zinc-100 dark:border-zinc-800 p-4">
+                                <div className="p-4" style={{ borderTop: '1px solid var(--color-border)' }}>
                                     {voted ? (
-                                        <div className="flex items-center gap-2 text-sm text-zinc-500">
-                                            <Check className="h-4 w-4 text-emerald-500 shrink-0" />
-                                            <span>Your vote: <span className="font-semibold text-zinc-900 dark:text-white capitalize">{voted.replace('_', ' ')}</span></span>
-                                            <span className="ml-auto text-[10px] text-amber-600 flex items-center gap-1">
+                                        <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--color-text-muted)' }}>
+                                            <Check className="h-4 w-4 shrink-0" style={{ color: 'var(--color-success)' }} />
+                                            <span>Your vote: <span className="font-semibold capitalize" style={{ color: 'var(--color-primary)' }}>{voted.replace('_', ' ')}</span></span>
+                                            <span className="ml-auto text-[10px] flex items-center gap-1" style={{ color: 'var(--color-warning)' }}>
                                                 <Star className="h-3 w-3" /> +1 credit
                                             </span>
                                         </div>
                                     ) : (
                                         <div>
-                                            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-2.5">Cast your vote</p>
+                                            <p className="text-[10px] font-bold uppercase tracking-wider mb-2.5" style={{ color: 'var(--color-text-muted)' }}>Cast your vote</p>
                                             <div className="flex gap-2 flex-wrap">
                                                 {VOTE_OPTIONS.map(opt => (
                                                     <button
                                                         key={opt.value}
                                                         onClick={() => vote(d, opt.value)}
                                                         disabled={!!voting}
-                                                        className={`flex items-center gap-1.5 h-8 px-3 rounded-xl border text-xs font-semibold transition-all ${opt.cls} ${voting?.startsWith(d.id) ? 'opacity-60' : ''}`}>
+                                                        className="flex items-center gap-1.5 h-8 px-3 rounded-xl border text-xs font-semibold transition-all input-lightning"
+                                                        style={{
+                                                            borderColor: 'var(--color-border)',
+                                                            backgroundColor: 'var(--color-surface)',
+                                                            color: opt.color
+                                                        }}>
                                                         {voting === d.id + opt.value
-                                                            ? <Loader2 className="h-3 w-3 animate-spin" />
-                                                            : <opt.Icon className="h-3 w-3" />}
+                                                            ? <Loader2 className="h-3 w-3 animate-spin" style={{ color: opt.color }} />
+                                                            : <opt.Icon className="h-3 w-3" style={{ color: opt.color }} />}
                                                         {opt.label}
                                                     </button>
                                                 ))}
@@ -188,7 +209,8 @@ export default function Jury() {
             )}
 
             {!user && (
-                <div className="text-center py-6 text-zinc-400 text-sm border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl">
+                <div className="text-center py-6 text-sm rounded-2xl shimmer"
+                    style={{ backgroundColor: 'var(--color-surface)', border: '1px dashed var(--color-border)', color: 'var(--color-text-muted)' }}>
                     Sign in to participate as a juror and earn time credits
                 </div>
             )}

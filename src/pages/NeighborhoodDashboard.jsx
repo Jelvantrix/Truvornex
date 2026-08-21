@@ -6,9 +6,9 @@ import {
 } from 'recharts';
 import {
     Activity, AlertCircle, Layers, TrendingUp, TrendingDown,
-    ArrowRight, ShieldCheck, CheckCircle, MapPin, Users, Calendar,
+    ArrowRight, ShieldCheck, CheckCircle, MapPin, Calendar,
     MessageSquare, Vote, Zap, Package, Star,
-    Heart, Wrench, BarChart2, RefreshCw
+    Heart, Wrench, RefreshCw
 } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/lib/AuthContext';
@@ -16,38 +16,38 @@ import { format, subDays } from 'date-fns';
 import { toast } from 'sonner';
 
 const OS_MODULES = [
-    { icon: MessageSquare, label: 'Community Feed',  href: '/community',  color: 'bg-violet-100 dark:bg-violet-900/30', text: 'text-violet-600 dark:text-violet-300', desc: 'Posts & skill swaps' },
-    { icon: Calendar,      label: 'Local Events',    href: '/events',     color: 'bg-sky-100 dark:bg-sky-900/30',    text: 'text-sky-600 dark:text-sky-300',    desc: 'Concerts & meetups' },
-    { icon: Vote,          label: 'Polls',           href: '/community',  color: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-600 dark:text-amber-300', desc: 'Neighborhood votes' },
-    { icon: Zap,           label: 'Emergency',       href: '/neighborhood/emergency',  color: 'bg-red-100 dark:bg-red-900/30',    text: 'text-red-600 dark:text-red-300',    desc: 'Urgent dispatch' },
-    { icon: Layers,        label: 'Group Deals',     href: '/neighborhood/group-buy',  color: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-600 dark:text-emerald-300', desc: 'Save with neighbors' },
-    { icon: RefreshCw,     label: 'Skill Swap',      href: '/neighborhood/skill-swap', color: 'bg-teal-100 dark:bg-teal-900/30',   text: 'text-teal-600 dark:text-teal-300',    desc: 'Trade skills & time' },
-    { icon: ShieldCheck,   label: 'Jury',            href: '/neighborhood/jury',       color: 'bg-slate-100 dark:bg-slate-800',    text: 'text-slate-600 dark:text-slate-300',  desc: 'Resolve disputes' },
-    { icon: Package,       label: 'Services',        href: '/services',   color: 'bg-zinc-100 dark:bg-zinc-800',     text: 'text-zinc-600 dark:text-zinc-300',   desc: 'Book any service' },
-    { icon: Star,          label: 'Recommendations', href: '/recommendations', color: 'bg-pink-100 dark:bg-pink-900/30', text: 'text-pink-600 dark:text-pink-300', desc: 'AI picks for you' },
-    { icon: Heart,         label: 'Loyalty',         href: '/loyalty',    color: 'bg-rose-100 dark:bg-rose-900/30',  text: 'text-rose-600 dark:text-rose-300',   desc: 'Points & rewards' },
+    { icon: MessageSquare, label: 'Community Feed',  href: '/community',         desc: 'Posts & skill swaps' },
+    { icon: Calendar,      label: 'Local Events',    href: '/events',            desc: 'Concerts & meetups' },
+    { icon: Vote,          label: 'Polls',           href: '/community',         desc: 'Neighborhood votes' },
+    { icon: Zap,           label: 'Emergency',       href: '/neighborhood/emergency', desc: 'Urgent dispatch' },
+    { icon: Layers,        label: 'Group Deals',     href: '/neighborhood/group-buy', desc: 'Save with neighbors' },
+    { icon: RefreshCw,     label: 'Skill Swap',      href: '/neighborhood/skill-swap', desc: 'Trade skills & time' },
+    { icon: ShieldCheck,   label: 'Jury',            href: '/neighborhood/jury', desc: 'Resolve disputes' },
+    { icon: Package,       label: 'Services',        href: '/services',          desc: 'Book any service' },
+    { icon: Star,          label: 'Recommendations', href: '/recommendations',   desc: 'AI picks for you' },
+    { icon: Heart,         label: 'Loyalty',         href: '/loyalty',           desc: 'Points & rewards' },
 ];
 
 const QUICK_ACTIONS = [
-    { label: 'Report issue', icon: AlertCircle, action: 'report',  color: 'text-amber-600' },
-    { label: 'Request help',  icon: Heart,      action: 'help',    color: 'text-rose-600'  },
-    { label: 'Share update',  icon: MessageSquare, action: 'post', color: 'text-violet-600'},
-    { label: 'Book service',  icon: Wrench,     action: 'book',    color: 'text-sky-600'   },
+    { label: 'Report issue', icon: AlertCircle, action: 'report', color: 'var(--color-warning)' },
+    { label: 'Request help',  icon: Heart,      action: 'help',    color: 'var(--color-error)'   },
+    { label: 'Share update',  icon: MessageSquare, action: 'post', color: 'var(--color-primary)' },
+    { label: 'Book service',  icon: Wrench,     action: 'book',    color: 'var(--color-info)'    },
 ];
 
-function StatCard({ label, value, sub, icon: Icon, accent, trend }) {
+function StatCard({ label, value, sub, icon: Icon, trend }) {
     return (
-        <div className={`rounded-2xl p-5 border ${accent ? 'bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 border-zinc-800 dark:border-zinc-200' : 'bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800'}`}>
+        <div className="rounded-2xl p-5 shimmer" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
             <div className="flex items-center justify-between mb-3">
-                <span className={`text-[11px] font-bold uppercase tracking-widest ${accent ? 'text-zinc-400 dark:text-zinc-500' : 'text-zinc-400'}`}>{label}</span>
-                <div className={`h-8 w-8 rounded-xl flex items-center justify-center ${accent ? 'bg-white/10 dark:bg-black/10' : 'bg-zinc-50 dark:bg-zinc-800'}`}>
-                    <Icon className={`h-4 w-4 ${accent ? 'text-zinc-300 dark:text-zinc-600' : 'text-zinc-500 dark:text-zinc-400'}`} />
+                <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-subtle)' }}>{label}</span>
+                <div className="h-10 w-10 rounded-xl flex items-center justify-center card-lightning-subtle" style={{ backgroundColor: 'rgba(var(--color-primary),0.12)' }}>
+                    <Icon className="h-5 w-5" style={{ color: 'var(--color-primary)' }} />
                 </div>
             </div>
-            <div className={`text-3xl font-black tracking-tight ${accent ? 'text-white dark:text-zinc-900' : 'text-zinc-900 dark:text-white'}`}>{value}</div>
-            {sub && <div className="text-xs mt-1.5 text-zinc-400">{sub}</div>}
+            <div className="font-black text-3xl tracking-tight" style={{ color: 'var(--color-primary)' }}>{value}</div>
+            {sub && <div className="text-xs mt-1.5" style={{ color: 'var(--color-text-muted)' }}>{sub}</div>}
             {trend != null && (
-                <div className={`flex items-center gap-1 mt-2 text-xs font-semibold ${trend >= 0 ? 'text-emerald-500' : 'text-red-400'}`}>
+                <div className="flex items-center gap-1 mt-2 text-xs font-semibold" style={{ color: trend >= 0 ? 'var(--color-success)' : 'var(--color-error)' }}>
                     {trend >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                     {Math.abs(trend).toFixed(0)}% this week
                 </div>
@@ -56,15 +56,15 @@ function StatCard({ label, value, sub, icon: Icon, accent, trend }) {
     );
 }
 
-function PulseBar({ label, value, max, color = 'bg-zinc-900 dark:bg-zinc-100' }) {
+function PulseBar({ label, value, max }) {
     const pct = max > 0 ? Math.round(value / max * 100) : 0;
     return (
         <div className="flex items-center gap-3">
-            <span className="text-xs text-zinc-500 dark:text-zinc-400 w-24 shrink-0 truncate">{label}</span>
-            <div className="flex-1 h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                <div className={`h-full ${color} rounded-full transition-all duration-700`} style={{ width: `${pct}%` }} />
+            <span className="text-xs w-24 shrink-0 truncate" style={{ color: 'var(--color-text-muted)' }}>{label}</span>
+            <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--color-surface-high)' }}>
+                <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: 'var(--color-primary)' }} />
             </div>
-            <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 w-6 text-right">{value}</span>
+            <span className="text-xs font-semibold w-6 text-right" style={{ color: 'var(--color-text)' }}>{value}</span>
         </div>
     );
 }
@@ -72,10 +72,15 @@ function PulseBar({ label, value, max, color = 'bg-zinc-900 dark:bg-zinc-100' })
 function GapBadge({ category, demand, supply }) {
     const ratio = supply === 0 ? 99 : demand / supply;
     const level = ratio > 3 ? 'critical' : ratio > 2 ? 'high' : 'moderate';
-    const styles = { critical:'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300', high:'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300', moderate:'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300' };
-    const labels = { critical:'Critical Gap', high:'High Demand', moderate:'Moderate Gap' };
+    const styles = {
+        critical: { bg: 'var(--color-error-bg)',   border: 'var(--color-error)',   color: 'var(--color-error)' },
+        high:     { bg: 'var(--color-warning-bg)', border: 'var(--color-warning)', color: 'var(--color-warning)' },
+        moderate: { bg: 'var(--color-info-bg)',    border: 'var(--color-info)',    color: 'var(--color-info)' },
+    };
+    const labels = { critical: 'Critical Gap', high: 'High Demand', moderate: 'Moderate Gap' };
+    const s = styles[level];
     return (
-        <div className={`rounded-xl border px-4 py-3 ${styles[level]}`}>
+        <div className="rounded-xl px-4 py-3 hover-lift" style={{ backgroundColor: s.bg, border: `1px solid ${s.border}`, color: s.color }}>
             <div className="flex items-center justify-between mb-1">
                 <span className="font-semibold text-sm capitalize">{category.replace('_', ' ')}</span>
                 <span className="text-[10px] font-bold uppercase tracking-wider">{labels[level]}</span>
@@ -194,35 +199,35 @@ export default function NeighborhoodDashboard() {
                 <div>
                     <div className="flex items-center gap-2.5 mb-1">
                         <div className="relative h-2.5 w-2.5">
-                            <div className="absolute inset-0 bg-emerald-500 rounded-full animate-ping opacity-75" />
-                            <div className="relative h-2.5 w-2.5 bg-emerald-500 rounded-full" />
+                            <div className="absolute inset-0 rounded-full animate-ping opacity-75" style={{ backgroundColor: 'var(--color-success)' }} />
+                            <div className="relative h-2.5 w-2.5 rounded-full" style={{ backgroundColor: 'var(--color-success)' }} />
                         </div>
-                        <h1 className="font-black text-2xl tracking-tight text-zinc-900 dark:text-white">Neighborhood OS</h1>
+                        <h1 className="font-black text-2xl tracking-tight" style={{ color: 'var(--color-primary)' }}>Neighborhood OS</h1>
                     </div>
-                    <p className="text-zinc-400 dark:text-zinc-500 text-sm">Your neighborhood's operating system — live intelligence & community hub</p>
+                    <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Your neighborhood's operating system — live intelligence & community hub</p>
                 </div>
-                <button onClick={() => window.location.reload()} className="h-8 w-8 rounded-xl border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">
+                <button onClick={() => window.location.reload()} className="h-8 w-8 rounded-xl flex items-center justify-center transition-colors card-lightning-subtle" style={{ border: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
                     <RefreshCw className="h-3.5 w-3.5" />
                 </button>
             </div>
 
             {/* OS Pulse Banner */}
             {!alertDismissed && metrics.gaps.length > 0 && (
-                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-4 flex items-start gap-3">
-                    <AlertCircle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+                <div className="rounded-2xl p-4 flex items-start gap-3 hover-lift" style={{ backgroundColor: 'var(--color-warning-bg)', border: '1px solid var(--color-warning)', color: 'var(--color-warning)' }}>
+                    <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
                     <div className="flex-1">
-                        <p className="font-semibold text-sm text-amber-800 dark:text-amber-200">Neighborhood Alert</p>
-                        <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
+                        <p className="font-semibold text-sm">Neighborhood Alert</p>
+                        <p className="text-xs mt-0.5">
                             {metrics.gaps.length} service gap{metrics.gaps.length>1?'s':''} detected — high demand with low provider supply. Consider sharing this with local pros.
                         </p>
                     </div>
-                    <button onClick={() => setAlertDismissed(true)} className="text-amber-400 hover:text-amber-600 transition-colors text-lg leading-none">×</button>
+                    <button onClick={() => { setAlertDismissed(true); toast.success('Alert dismissed'); }} className="text-lg leading-none transition-colors" style={{ color: 'var(--color-warning)' }}>×</button>
                 </div>
             )}
 
             {/* KPI Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                <StatCard accent label="Active Providers" value={metrics.totalProviders || '—'} sub="Verified & live" icon={ShieldCheck} />
+                <StatCard label="Active Providers" value={metrics.totalProviders || '—'} sub="Verified & live" icon={ShieldCheck} />
                 <StatCard label="Open Requests" value={metrics.pending} sub="Awaiting match" icon={Activity} trend={metrics.trend} />
                 <StatCard label="Group Deals" value={metrics.formingBundles} sub="Forming now" icon={Layers} />
                 <StatCard label="Jobs Completed" value={metrics.completedTotal} sub="Platform-wide" icon={CheckCircle} />
@@ -230,17 +235,17 @@ export default function NeighborhoodDashboard() {
 
             {/* OS Modules Grid */}
             <div>
-                <h2 className="font-bold text-sm text-zinc-900 dark:text-white mb-3">Neighborhood Modules</h2>
+                <h2 className="font-bold text-sm mb-3" style={{ color: 'var(--color-primary)' }}>Neighborhood Modules</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                     {OS_MODULES.map(m => (
                         <Link key={m.href+m.label} to={m.href}
-                            className="flex flex-col items-start gap-2 p-3.5 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-600 transition-all group">
-                            <div className={`h-8 w-8 rounded-xl flex items-center justify-center ${m.color}`}>
-                                <m.icon className={`h-4 w-4 ${m.text}`} />
+                            className="flex flex-col items-start gap-2 p-3.5 rounded-2xl border card-lightning-subtle hover-lift transition-all group">
+                            <div className="h-8 w-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(var(--color-primary),0.12)' }}>
+                                <m.icon className="h-4 w-4" style={{ color: 'var(--color-primary)' }} />
                             </div>
                             <div>
-                                <p className="text-xs font-bold text-zinc-900 dark:text-white leading-tight">{m.label}</p>
-                                <p className="text-[10px] text-zinc-400 mt-0.5 leading-tight">{m.desc}</p>
+                                <p className="text-xs font-bold leading-tight" style={{ color: 'var(--color-primary)' }}>{m.label}</p>
+                                <p className="text-[10px] mt-0.5 leading-tight" style={{ color: 'var(--color-text-muted)' }}>{m.desc}</p>
                             </div>
                         </Link>
                     ))}
@@ -250,24 +255,24 @@ export default function NeighborhoodDashboard() {
             {/* 3-column live widgets */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 {/* Recent Community Activity */}
-                <div className="lg:col-span-1 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl overflow-hidden">
-                    <div className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+                <div className="lg:col-span-1 rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                    <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid var(--color-border)' }}>
                         <div className="flex items-center gap-2">
-                            <MessageSquare className="h-3.5 w-3.5 text-violet-500" />
+                            <MessageSquare className="h-3.5 w-3.5" style={{ color: 'var(--color-primary)' }} />
                             <span className="text-xs font-bold">Community Pulse</span>
                         </div>
-                        <Link to="/community" className="text-[10px] text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors flex items-center gap-0.5">View all <ArrowRight className="h-3 w-3" /></Link>
+                        <Link to="/community" className="text-[10px] flex items-center gap-0.5 transition-colors" style={{ color: 'var(--color-text-muted)' }}>View all <ArrowRight className="h-3 w-3" /></Link>
                     </div>
-                    <div className="divide-y divide-zinc-50 dark:divide-zinc-800">
+                    <div className="divide-y divide-[var(--color-border)]">
                         {posts.length === 0 ? (
-                            <div className="px-4 py-8 text-center text-xs text-zinc-400">No posts yet</div>
+                            <div className="px-4 py-8 text-center text-xs" style={{ color: 'var(--color-text-muted)' }}>No posts yet</div>
                         ) : posts.slice(0,5).map(p => (
-                            <div key={p.id} className="px-4 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
-                                <p className="text-xs font-medium text-zinc-900 dark:text-white line-clamp-1">{p.title || p.body}</p>
+                            <div key={p.id} className="px-4 py-2.5 transition-colors hover:bg-[var(--color-surface-high)]">
+                                <p className="text-xs font-medium line-clamp-1" style={{ color: 'var(--color-primary)' }}>{p.title || p.body}</p>
                                 <div className="flex items-center gap-2 mt-0.5">
-                                    <span className="text-[10px] text-zinc-400">{p.author_name}</span>
-                                    {p.upvotes > 0 && <span className="text-[10px] text-rose-400">♥ {p.upvotes}</span>}
-                                    {p.reply_count > 0 && <span className="text-[10px] text-zinc-400">{p.reply_count} replies</span>}
+                                    <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>{p.author_name}</span>
+                                    {p.upvotes > 0 && <span className="text-[10px]" style={{ color: 'var(--color-error)' }}>♥ {p.upvotes}</span>}
+                                    {p.reply_count > 0 && <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>{p.reply_count} replies</span>}
                                 </div>
                             </div>
                         ))}
@@ -275,29 +280,29 @@ export default function NeighborhoodDashboard() {
                 </div>
 
                 {/* Upcoming Events */}
-                <div className="lg:col-span-1 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl overflow-hidden">
-                    <div className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+                <div className="lg:col-span-1 rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                    <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid var(--color-border)' }}>
                         <div className="flex items-center gap-2">
-                            <Calendar className="h-3.5 w-3.5 text-sky-500" />
+                            <Calendar className="h-3.5 w-3.5" style={{ color: 'var(--color-primary)' }} />
                             <span className="text-xs font-bold">Upcoming Events</span>
                         </div>
-                        <Link to="/events" className="text-[10px] text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors flex items-center gap-0.5">See all <ArrowRight className="h-3 w-3" /></Link>
+                        <Link to="/events" className="text-[10px] flex items-center gap-0.5 transition-colors" style={{ color: 'var(--color-text-muted)' }}>See all <ArrowRight className="h-3 w-3" /></Link>
                     </div>
-                    <div className="divide-y divide-zinc-50 dark:divide-zinc-800">
+                    <div className="divide-y divide-[var(--color-border)]">
                         {upcomingEvents.length === 0 ? (
                             <div className="px-4 py-8 text-center">
-                                <Calendar className="h-6 w-6 mx-auto mb-2 text-zinc-200 dark:text-zinc-700" strokeWidth={1.5} />
-                                <p className="text-xs text-zinc-400">No events yet</p>
-                                <Link to="/events" className="text-[10px] font-semibold text-zinc-900 dark:text-white underline underline-offset-2 mt-1 inline-block">Create one</Link>
+                                <Calendar className="h-6 w-6 mx-auto mb-2" strokeWidth={1.5} style={{ color: 'var(--color-text-subtle)' }} />
+                                <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>No events yet</p>
+                                <Link to="/events" className="text-[10px] font-semibold underline underline-offset-2 mt-1 inline-block" style={{ color: 'var(--color-primary)' }}>Create one</Link>
                             </div>
                         ) : upcomingEvents.slice(0,5).map(ev => (
                             <div key={ev.id} className="px-4 py-2.5 flex items-center gap-2.5">
-                                <Calendar className="h-5 w-5 shrink-0 text-zinc-400 dark:text-zinc-500" />
+                                <Calendar className="h-5 w-5 shrink-0" style={{ color: 'var(--color-text-muted)' }} />
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-medium text-zinc-900 dark:text-white line-clamp-1">{ev.title}</p>
+                                    <p className="text-xs font-medium line-clamp-1" style={{ color: 'var(--color-primary)' }}>{ev.title}</p>
                                     <div className="flex items-center gap-1.5 mt-0.5">
-                                        {ev.date && <span className="text-[10px] text-zinc-400">{ev.date}</span>}
-                                        <span className="text-[10px] font-semibold text-emerald-600">{ev.is_free || !ev.ticket_price ? 'Free' : `$${ev.ticket_price}`}</span>
+                                        {ev.date && <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>{ev.date}</span>}
+                                        <span className="text-[10px] font-semibold" style={{ color: 'var(--color-success)' }}>{ev.is_free || !ev.ticket_price ? 'Free' : `$${ev.ticket_price}`}</span>
                                     </div>
                                 </div>
                             </div>
@@ -306,44 +311,44 @@ export default function NeighborhoodDashboard() {
                 </div>
 
                 {/* Active Polls */}
-                <div className="lg:col-span-1 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl overflow-hidden">
-                    <div className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+                <div className="lg:col-span-1 rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                    <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid var(--color-border)' }}>
                         <div className="flex items-center gap-2">
-                            <Vote className="h-3.5 w-3.5 text-amber-500" />
+                            <Vote className="h-3.5 w-3.5" style={{ color: 'var(--color-primary)' }} />
                             <span className="text-xs font-bold">Active Polls</span>
-                            {totalPollVotes > 0 && <span className="text-[10px] text-zinc-400">{totalPollVotes} votes</span>}
+                            {totalPollVotes > 0 && <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>{totalPollVotes} votes</span>}
                         </div>
-                        <Link to="/community" className="text-[10px] text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors flex items-center gap-0.5">Vote <ArrowRight className="h-3 w-3" /></Link>
+                        <Link to="/community" className="text-[10px] flex items-center gap-0.5 transition-colors" style={{ color: 'var(--color-text-muted)' }}>Vote <ArrowRight className="h-3 w-3" /></Link>
                     </div>
                     <div className="p-3 space-y-2">
                         {polls.length === 0 ? (
                             <div className="py-6 text-center">
-                                <Vote className="h-6 w-6 mx-auto mb-2 text-zinc-200 dark:text-zinc-700" strokeWidth={1.5} />
-                                <p className="text-xs text-zinc-400">No polls yet</p>
-                                <Link to="/community" className="text-[10px] font-semibold text-zinc-900 dark:text-white underline underline-offset-2 mt-1 inline-block">Create a poll</Link>
+                                <Vote className="h-6 w-6 mx-auto mb-2" strokeWidth={1.5} style={{ color: 'var(--color-text-subtle)' }} />
+                                <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>No polls yet</p>
+                                <Link to="/community" className="text-[10px] font-semibold underline underline-offset-2 mt-1 inline-block" style={{ color: 'var(--color-primary)' }}>Create a poll</Link>
                             </div>
                         ) : polls.map(poll => {
                             const total = (poll.options||[]).reduce((s,o) => s+(o.votes||0), 0);
                             const top = (poll.options||[]).reduce((a,b) => (a.votes||0)>=(b.votes||0)?a:b, {});
                             return (
                                 <Link to="/community" key={poll.id}
-                                    className="block p-2.5 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
-                                    <p className="text-xs font-medium text-zinc-900 dark:text-white line-clamp-2 mb-1.5">{poll.question}</p>
+                                    className="block p-2.5 rounded-xl transition-colors hover:bg-[var(--color-surface-high)]">
+                                    <p className="text-xs font-medium line-clamp-2 mb-1.5" style={{ color: 'var(--color-primary)' }}>{poll.question}</p>
                                     {(poll.options||[]).slice(0,2).map((opt,i) => {
                                         const pct = total > 0 ? Math.round((opt.votes||0)/total*100) : 0;
                                         return (
                                             <div key={i} className="mb-1">
-                                                <div className="flex justify-between text-[10px] text-zinc-500 mb-0.5">
+                                                <div className="flex justify-between text-[10px] mb-0.5" style={{ color: 'var(--color-text-muted)' }}>
                                                     <span className="truncate">{opt.text}</span>
                                                     <span className="font-semibold ml-1">{pct}%</span>
                                                 </div>
-                                                <div className="h-1 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                                                    <div className="h-full bg-amber-400 rounded-full" style={{ width:`${pct}%` }} />
+                                                <div className="h-1 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--color-surface-high)' }}>
+                                                    <div className="h-full rounded-full" style={{ width:`${pct}%`, backgroundColor: 'var(--color-primary)' }} />
                                                 </div>
                                             </div>
                                         );
                                     })}
-                                    <p className="text-[10px] text-zinc-400 mt-1">{total} votes · tap to vote</p>
+                                    <p className="text-[10px] mt-1" style={{ color: 'var(--color-text-muted)' }}>{total} votes · tap to vote</p>
                                 </Link>
                             );
                         })}
@@ -353,10 +358,10 @@ export default function NeighborhoodDashboard() {
 
             {/* Service Activity by Category */}
             {metrics.categoryActivity.length > 0 && (
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-5">
+                <div className="rounded-2xl p-5" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="font-bold text-sm text-zinc-900 dark:text-white">Service Demand by Category</h2>
-                        <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Active requests</span>
+                        <h2 className="font-bold text-sm" style={{ color: 'var(--color-primary)' }}>Service Demand by Category</h2>
+                        <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Active requests</span>
                     </div>
                     <div className="space-y-3">
                         {metrics.categoryActivity.map(([cat,count]) => (
@@ -367,10 +372,10 @@ export default function NeighborhoodDashboard() {
             )}
 
             {/* Booking Trend Chart */}
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-5">
+            <div className="rounded-2xl p-5" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="font-bold text-sm text-zinc-900 dark:text-white">Booking Activity — Last 14 Days</h2>
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${metrics.trend != null && metrics.trend >= 0 ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300' : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'}`}>
+                    <h2 className="font-bold text-sm" style={{ color: 'var(--color-primary)' }}>Booking Activity — Last 14 Days</h2>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: metrics.trend != null && metrics.trend >= 0 ? 'var(--color-success-bg)' : 'var(--color-error-bg)', color: metrics.trend != null && metrics.trend >= 0 ? 'var(--color-success)' : 'var(--color-error)', border: `1px solid ${metrics.trend != null && metrics.trend >= 0 ? 'var(--color-success)' : 'var(--color-error)'}` }}>
                         {metrics.trend != null ? `${metrics.trend >= 0 ? '+' : ''}${metrics.trend.toFixed(0)}% vs prev week` : 'Tracking…'}
                     </span>
                 </div>
@@ -378,37 +383,37 @@ export default function NeighborhoodDashboard() {
                     <AreaChart data={metrics.dailyTrend} margin={{ left:-10 }}>
                         <defs>
                             <linearGradient id="actGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#18181b" stopOpacity={0.12} />
-                                <stop offset="95%" stopColor="#18181b" stopOpacity={0} />
+                                <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.12} />
+                                <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0} />
                             </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" />
-                        <XAxis dataKey="date" tick={{ fontSize:10 }} interval={3} />
-                        <YAxis tick={{ fontSize:10 }} allowDecimals={false} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                        <XAxis dataKey="date" tick={{ fontSize:10, fill: 'var(--color-text-subtle)' }} interval={3} />
+                        <YAxis tick={{ fontSize:10, fill: 'var(--color-text-subtle)' }} allowDecimals={false} />
                         <Tooltip formatter={v => [v, 'Bookings']} />
-                        <Area type="monotone" dataKey="count" stroke="#18181b" strokeWidth={2} fill="url(#actGrad)" />
+                        <Area type="monotone" dataKey="count" stroke="var(--color-primary)" strokeWidth={2} fill="url(#actGrad)" />
                     </AreaChart>
                 </ResponsiveContainer>
             </div>
 
             {/* Demand vs Supply */}
             {metrics.demandChartData.length > 0 && (
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-5">
+                <div className="rounded-2xl p-5" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="font-bold text-sm text-zinc-900 dark:text-white">Demand vs Supply by Service</h2>
-                        <div className="flex items-center gap-3 text-[11px] text-zinc-500">
-                            <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-zinc-900 dark:bg-zinc-100 inline-block" /> Demand</span>
-                            <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-zinc-300 dark:bg-zinc-600 inline-block" /> Supply</span>
+                        <h2 className="font-bold text-sm" style={{ color: 'var(--color-primary)' }}>Demand vs Supply by Service</h2>
+                        <div className="flex items-center gap-3 text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+                            <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm inline-block" style={{ backgroundColor: 'var(--color-primary)' }} /> Demand</span>
+                            <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm inline-block" style={{ backgroundColor: 'var(--color-text-subtle)' }} /> Supply</span>
                         </div>
                     </div>
                     <ResponsiveContainer width="100%" height={200}>
                         <BarChart data={metrics.demandChartData} layout="vertical">
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" horizontal={false} />
-                            <XAxis type="number" tick={{ fontSize:10 }} allowDecimals={false} />
-                            <YAxis type="category" dataKey="name" tick={{ fontSize:11 }} width={80} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" horizontal={false} />
+                            <XAxis type="number" tick={{ fontSize:10, fill: 'var(--color-text-subtle)' }} allowDecimals={false} />
+                            <YAxis type="category" dataKey="name" tick={{ fontSize:11, fill: 'var(--color-text-subtle)' }} width={80} />
                             <Tooltip />
-                            <Bar dataKey="demand" fill="#18181b" radius={[0,4,4,0]} />
-                            <Bar dataKey="supply" fill="#d4d4d8" radius={[0,4,4,0]} />
+                            <Bar dataKey="demand" fill="var(--color-primary)" radius={[0,4,4,0]} />
+                            <Bar dataKey="supply" fill="var(--color-text-subtle)" radius={[0,4,4,0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
@@ -418,15 +423,15 @@ export default function NeighborhoodDashboard() {
             {metrics.gaps.length > 0 && (
                 <div>
                     <div className="flex items-center gap-2.5 mb-4">
-                        <AlertCircle className="h-5 w-5 text-amber-500" />
-                        <h2 className="font-bold text-lg tracking-tight text-zinc-900 dark:text-white">Service Gap Alerts</h2>
-                        <span className="text-[10px] bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full font-bold">{metrics.gaps.length} gaps</span>
+                        <AlertCircle className="h-5 w-5" style={{ color: 'var(--color-warning)' }} />
+                        <h2 className="font-bold text-lg tracking-tight" style={{ color: 'var(--color-primary)' }}>Service Gap Alerts</h2>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: 'var(--color-warning-bg)', color: 'var(--color-warning)', border: '1px solid var(--color-warning)' }}>{metrics.gaps.length} gaps</span>
                     </div>
                     <div className="space-y-2.5">
                         {metrics.gaps.map((gap,i) => <GapBadge key={i} category={gap.category} demand={gap.demand} supply={gap.supply} />)}
                     </div>
-                    <div className="mt-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-2xl p-4">
-                        <p className="text-xs text-amber-800 dark:text-amber-200 font-medium">
+                    <div className="mt-4 rounded-2xl p-4" style={{ backgroundColor: 'var(--color-warning-bg)', border: '1px solid var(--color-warning)', color: 'var(--color-warning)' }}>
+                        <p className="text-xs font-medium">
                             These gaps represent <strong>provider opportunities</strong>. Share this with local professionals to grow supply in underserved categories.
                         </p>
                     </div>
@@ -437,25 +442,27 @@ export default function NeighborhoodDashboard() {
             {bundles.filter(b => ['forming','confirmed'].includes(b.status)).length > 0 && (
                 <div>
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="font-bold text-lg tracking-tight text-zinc-900 dark:text-white">Active Group Deals</h2>
-                        <Link to="/bundles" className="flex items-center gap-1.5 text-sm font-medium text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">
+                        <h2 className="font-bold text-lg tracking-tight" style={{ color: 'var(--color-primary)' }}>Active Group Deals</h2>
+                        <Link to="/bundles" className="flex items-center gap-1.5 text-sm font-medium transition-colors" style={{ color: 'var(--color-text-muted)' }}>
                             Manage <ArrowRight className="h-3.5 w-3.5" />
                         </Link>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         {bundles.filter(b => ['forming','confirmed'].includes(b.status)).slice(0,3).map(b => (
-                            <Link key={b.id} to="/bundles" className="card-premium p-4 block group">
+                            <Link key={b.id} to="/bundles" className="card-premium p-4 block group hover-lift">
                                 <div className="flex items-start justify-between mb-2">
-                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${b.status==='confirmed' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'}`}>{b.status}</span>
-                                    <span className="text-xs font-bold text-blue-600">Save {b.discount_percentage||20}%</span>
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider" style={b.status==='confirmed'
+                                        ? { backgroundColor: 'var(--color-success-bg)', color: 'var(--color-success)', border: '1px solid var(--color-success)' }
+                                        : { backgroundColor: 'var(--color-info-bg)', color: 'var(--color-info)', border: '1px solid var(--color-info)' }}>{b.status}</span>
+                                    <span className="text-xs font-bold" style={{ color: 'var(--color-primary)' }}>Save {b.discount_percentage||20}%</span>
                                 </div>
-                                <h3 className="font-semibold text-sm mb-1 text-zinc-900 dark:text-white">{b.title}</h3>
-                                {b.zone_name && <p className="text-xs text-zinc-400 flex items-center gap-1"><MapPin className="h-3 w-3" />{b.zone_name}</p>}
+                                <h3 className="font-semibold text-sm mb-1" style={{ color: 'var(--color-primary)' }}>{b.title}</h3>
+                                {b.zone_name && <p className="text-xs flex items-center gap-1" style={{ color: 'var(--color-text-muted)' }}><MapPin className="h-3 w-3" />{b.zone_name}</p>}
                                 <div className="mt-3">
-                                    <div className="h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                                        <div className="h-full bg-blue-500 rounded-full" style={{ width:`${((b.current_participants||1)/(b.max_participants||5))*100}%` }} />
+                                    <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--color-surface-high)' }}>
+                                        <div className="h-full rounded-full" style={{ width:`${((b.current_participants||1)/(b.max_participants||5))*100}%`, backgroundColor: 'var(--color-primary)' }} />
                                     </div>
-                                    <p className="text-[10px] text-zinc-400 mt-1">{b.current_participants||1}/{b.max_participants} participants</p>
+                                    <p className="text-[10px] mt-1" style={{ color: 'var(--color-text-muted)' }}>{b.current_participants||1}/{b.max_participants} participants</p>
                                 </div>
                             </Link>
                         ))}
@@ -465,30 +472,31 @@ export default function NeighborhoodDashboard() {
 
             {/* Recent Platform Activity */}
             {metrics.recent.length > 0 && (
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl overflow-hidden">
-                    <div className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center gap-2">
-                        <Activity className="h-4 w-4 text-zinc-400" />
-                        <h2 className="font-semibold text-sm text-zinc-900 dark:text-white">Recent Platform Activity</h2>
+                <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                    <div className="px-5 py-4 flex items-center gap-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                        <Activity className="h-4 w-4" style={{ color: 'var(--color-text-muted)' }} />
+                        <h2 className="font-semibold text-sm" style={{ color: 'var(--color-primary)' }}>Recent Platform Activity</h2>
                     </div>
-                    <div className="divide-y divide-zinc-50 dark:divide-zinc-800">
+                    <div className="divide-y divide-[var(--color-border)]">
                         {metrics.recent.map((b,i) => {
-                            const statusColors = {
-                                pending:'text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-300',
-                                confirmed:'text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-300',
-                                completed:'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-300',
-                                cancelled:'text-zinc-400 bg-zinc-100 dark:bg-zinc-800 dark:text-zinc-500',
-                                in_progress:'text-violet-600 bg-violet-50 dark:bg-violet-900/20 dark:text-violet-300',
+                            const statusStyles = {
+                                pending:     { color: 'var(--color-warning)',  bg: 'var(--color-warning-bg)',  border: 'var(--color-warning)' },
+                                confirmed:   { color: 'var(--color-info)',     bg: 'var(--color-info-bg)',     border: 'var(--color-info)' },
+                                completed:   { color: 'var(--color-success)',  bg: 'var(--color-success-bg)',  border: 'var(--color-success)' },
+                                cancelled:   { color: 'var(--color-text-muted)', bg: 'var(--color-surface-high)', border: 'var(--color-border)' },
+                                in_progress: { color: 'var(--color-primary)',  bg: 'var(--color-surface-high)', border: 'var(--color-border)' },
                             };
+                            const sc = statusStyles[b.status] || statusStyles.cancelled;
                             return (
                                 <div key={b.id||i} className="flex items-center gap-3 px-5 py-3">
-                                    <div className="h-7 w-7 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-xs font-bold text-zinc-500 shrink-0">
+                                    <div className="h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: 'var(--color-surface-high)', color: 'var(--color-text-muted)' }}>
                                         {b.service_name?.[0] || '?'}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium text-zinc-900 dark:text-white truncate">{b.service_name || 'Service'}</p>
-                                        <p className="text-xs text-zinc-400">{b.date}{b.time_slot && ` at ${b.time_slot}`}</p>
+                                        <p className="text-sm font-medium truncate" style={{ color: 'var(--color-primary)' }}>{b.service_name || 'Service'}</p>
+                                        <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{b.date}{b.time_slot && ` at ${b.time_slot}`}</p>
                                     </div>
-                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full capitalize ${statusColors[b.status] || 'text-zinc-500 bg-zinc-100'}`}>{b.status}</span>
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full capitalize" style={{ color: sc.color, backgroundColor: sc.bg, border: `1px solid ${sc.border}` }}>{b.status}</span>
                                 </div>
                             );
                         })}

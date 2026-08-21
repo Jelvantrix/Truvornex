@@ -12,7 +12,13 @@ import { serverError } from './utils.js';
 import { requireAdminAuth } from './security.js';
 import * as simon from './simon.js';
 import { startScheduledJobs as startSimonMonitor } from './simon/monitor.js';
-import { initNewTables, initExtendedTables, initNeighborhoodTables, initLocationIntelligence, writeAuditLog, createNotification, writeSimonAction, refreshZoneStats, getOrCreateZone } from './db.js';
+import { initNewTables, initExtendedTables, initLocationIntelligence, writeAuditLog, createNotification, writeSimonAction, refreshZoneStats, getOrCreateZone } from './db.js';
+import { initNeighborhoodCoreTables } from '../worlds/neighborhood/_core/neighborhood.schema.js';
+import { initEmergencyTables } from '../worlds/neighborhood/emergency/schema/emergency.schema.js';
+import { initJuryTables } from '../worlds/neighborhood/jury/schema/jury.schema.js';
+import { initGroupBuyTables } from '../worlds/neighborhood/group-buy/schema/group-buy.schema.js';
+import { initSkillSwapTables } from '../worlds/neighborhood/skill-swap/schema/skill-swap.schema.js';
+import { initCommunityTables } from '../worlds/neighborhood/community/schema/community.schema.js';
 import financialRouter from './financial.js';
 import notificationsRouter, { broadcastNotification } from './notifications-routes.js';
 import { buildCredential, verifyCredential, recordSkillActivity, refreshIncomeSnapshots } from './identity.js';
@@ -21,10 +27,10 @@ import careBridgeRouter from './care-bridge.js';
 import chatRouter from './chat.js';
 import committeeRouter from './committee.js';
 import marketplaceRouter from './marketplace.js';
-import neighborhoodExtRouter from './neighborhood-ext.js';
 import walletRouter from './wallet.js';
 import locationRouter from './location.js';
 import securityRouter from './security-routes.js';
+import neighborhoodRouter from '../worlds/neighborhood/index.js';
 import { installTriggers, startRealtimeListeners, handleZoneHeatmapStream, handlePlatformStatsStream, handleBookingStream, handleChatStream, handleNeighborhoodStatsStream } from './realtime.js';
 import { logError, getErrorStats } from './error-logger.js';
 import {
@@ -144,7 +150,12 @@ async function initDb() {
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS clerk_user_id TEXT UNIQUE`).catch(() => {});
         await initNewTables();
         await initExtendedTables();
-        await initNeighborhoodTables(); // neighborhood_zones schema lives in db.js
+        await initNeighborhoodCoreTables(); // Core neighborhood tables
+        await initEmergencyTables(); // Emergency world
+        await initJuryTables(); // Jury world
+        await initGroupBuyTables(); // Group Buy world
+        await initSkillSwapTables(); // Skill Swap world
+        await initCommunityTables(); // Community world
         await initLocationIntelligence(); // PostGIS and location-aware features
         await initSecurityTables(); // Security layer tables
         // Remove any legacy hardcoded zones (e.g. Karachi seed from old migration)
@@ -541,7 +552,7 @@ app.use('/api/wallet', requireAuth, walletRouter);
 app.use('/api/security', requireAuth, securityRouter);
 app.use('/api/committees', requireAuth, committeeRouter);
 app.use('/api/marketplace', requireAuth, marketplaceRouter);
-app.use('/api/neighborhood', requireAuth, neighborhoodExtRouter);
+app.use('/api/neighborhood', requireAuth, neighborhoodRouter);
 app.use('/api/location', requireAuth, locationRouter);
 
 // ── Real-time SSE push endpoints (true push, not polling) ────────────────────
@@ -607,317 +618,6 @@ app.post('/api/identity/skill-activity', requireAuth, async (req, res) => {
     try {
         await recordSkillActivity(req.session.user.id, category);
         await refreshIncomeSnapshots(req.session.user.id);
-        res.json({ success: true });
-    } catch (err) { serverError(res, err); }
-});
-
-/* ── Neighborhood / Community API routes ─────────────────────── */
-
-app.get('/api/emergency-requests', requireAuth, async (req, res) => {
-    try {
-        const { rows } = await pool.query(
-            'SELECT * FROM emergency_requests WHERE customer_id = $1 ORDER BY created_at DESC LIMIT 10',
-            [req.session.user.id]
-        );
-        res.json({ data: rows });
-    } catch (err) { serverError(res, err); }
-});
-
-app.post('/api/emergency-requests', requireAuth, async (req, res) => {
-    const { category, urgency, description, lat, lng, zone_id } = req.body;
-    try {
-        const { rows } = await pool.query(
-            'INSERT INTO emergency_requests (customer_id, zone_id, category, urgency, description, lat, lng) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
-            [req.session.user.id, zone_id || null, category, urgency || 'immediate', description, lat || null, lng || null]
-        );
-        res.json({ data: rows[0] });
-    } catch (err) { serverError(res, err); }
-});
-
-app.patch('/api/emergency-requests/:id', requireAuth, async (req, res) => {
-    const { status } = req.body;
-    try {
-        await pool.query(
-            'UPDATE emergency_requests SET status=$1, updated_at=NOW() WHERE id=$2 AND customer_id=$3',
-            [status, req.params.id, req.session.user.id]
-        );
-        res.json({ success: true });
-    } catch (err) { serverError(res, err); }
-});
-
-app.get('/api/group-buys', async (req, res) => {
-    try {
-        const { rows } = await pool.query(
-            "SELECT * FROM group_buys WHERE status IN ('open','locked') ORDER BY created_at DESC LIMIT 30"
-        );
-        res.json({ data: rows });
-    } catch (err) { serverError(res, err); }
-});
-
-app.get('/api/group-buy-participants/my', requireAuth, async (req, res) => {
-    try {
-        const { rows } = await pool.query(
-            'SELECT group_buy_id FROM group_buy_participants WHERE user_id = $1',
-            [req.session.user.id]
-        );
-        res.json({ data: rows });
-    } catch (err) { serverError(res, err); }
-});
-
-app.post('/api/group-buys', requireAuth, async (req, res) => {
-    const { zone_id, service_category, description, target_participants, discount_percent, expires_at } = req.body;
-    try {
-        const { rows } = await pool.query(
-            'INSERT INTO group_buys (zone_id, service_category, description, initiator_id, target_participants, discount_percent, expires_at) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
-            [zone_id || null, service_category, description || null, req.session.user.id, target_participants || 5, discount_percent || 10, expires_at || null]
-        );
-        await pool.query('INSERT INTO group_buy_participants (group_buy_id, user_id) VALUES ($1,$2) ON CONFLICT DO NOTHING', [rows[0].id, req.session.user.id]);
-        res.json({ data: rows[0] });
-    } catch (err) { serverError(res, err); }
-});
-
-app.post('/api/group-buys/:id/join', requireAuth, async (req, res) => {
-    try {
-        await pool.query('INSERT INTO group_buy_participants (group_buy_id, user_id) VALUES ($1,$2) ON CONFLICT DO NOTHING', [req.params.id, req.session.user.id]);
-        const { rows } = await pool.query('SELECT current_participants FROM group_buys WHERE id=$1', [req.params.id]);
-        const newCount = (rows[0]?.current_participants || 0) + 1;
-        await pool.query('UPDATE group_buys SET current_participants=$1, updated_at=NOW() WHERE id=$2', [newCount, req.params.id]);
-        res.json({ success: true });
-    } catch (err) { serverError(res, err); }
-});
-
-/* ═══════════════════════════════════════
-   SERVICE BUNDLES
-═══════════════════════════════════════ */
-app.get('/api/bundles', async (req, res) => {
-    const { status } = req.query;
-    try {
-        const conditions = [];
-        const params = [];
-        let pi = 1;
-        if (status && status !== 'all') { conditions.push(`status = $${pi++}`); params.push(status); }
-        const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
-        const { rows } = await pool.query(
-            `SELECT sb.*, u.full_name AS organizer_name, u.email AS organizer_email
-             FROM service_bundles sb JOIN users u ON u.id = sb.organizer_id
-             ${where} ORDER BY sb.created_at DESC LIMIT 50`,
-            params
-        );
-        res.json({ bundles: rows });
-    } catch (err) { serverError(res, err); }
-});
-
-app.post('/api/bundles', requireAuth, async (req, res) => {
-    const userId = req.session.user.id;
-    const { title, description, category_slug, service_name, zone_name, address_hint, max_participants, discount_percentage, base_price, scheduled_date, deadline_date } = req.body;
-    if (!title || !category_slug) return res.status(400).json({ error: 'title and category_slug required' });
-    try {
-        const { rows: userRow } = await pool.query(`SELECT full_name, email FROM users WHERE id = $1`, [userId]);
-        const discountedPrice = base_price ? parseFloat(base_price) * (1 - parseInt(discount_percentage) / 100) : null;
-        const { rows } = await pool.query(
-            `INSERT INTO service_bundles (organizer_id, title, description, category_slug, service_name, zone_name, address_hint, max_participants, discount_percentage, base_price, discounted_price, scheduled_date, deadline_date, organizer_email, participant_emails)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,ARRAY[$14])
-             RETURNING *`,
-            [userId, title, description || null, category_slug, service_name || category_slug, zone_name || null, address_hint || null, parseInt(max_participants) || 5, parseInt(discount_percentage) || 20, base_price ? parseFloat(base_price) : null, discountedPrice, scheduled_date || null, deadline_date || null, userRow[0]?.email]
-        );
-        await pool.query(`INSERT INTO bundle_participants (bundle_id, user_id) VALUES ($1,$2) ON CONFLICT DO NOTHING`, [rows[0].id, userId]);
-        res.json({ bundle: rows[0] });
-    } catch (err) { serverError(res, err); }
-});
-
-app.post('/api/bundles/:id/join', requireAuth, async (req, res) => {
-    const userId = req.session.user.id;
-    try {
-        const { rows: bundle } = await pool.query(`SELECT * FROM service_bundles WHERE id = $1 AND status = 'forming'`, [req.params.id]);
-        if (!bundle[0]) return res.status(404).json({ error: 'Bundle not available' });
-        if (bundle[0].current_participants >= bundle[0].max_participants) return res.status(400).json({ error: 'Bundle is full' });
-        await pool.query(`INSERT INTO bundle_participants (bundle_id, user_id) VALUES ($1,$2) ON CONFLICT DO NOTHING`, [req.params.id, userId]);
-        const { rows: userRow } = await pool.query(`SELECT email FROM users WHERE id = $1`, [userId]);
-        await pool.query(
-            `UPDATE service_bundles SET current_participants = current_participants + 1, participant_emails = array_append(participant_emails, $2), updated_at = NOW() WHERE id = $1`,
-            [req.params.id, userRow[0]?.email]
-        );
-        res.json({ success: true });
-    } catch (err) { serverError(res, err); }
-});
-
-app.get('/api/skill-swaps', async (req, res) => {
-    try {
-        const { rows } = await pool.query("SELECT * FROM skill_swaps WHERE status='open' ORDER BY created_at DESC LIMIT 30");
-        res.json({ data: rows });
-    } catch (err) { serverError(res, err); }
-});
-
-app.get('/api/skill-swaps/my', requireAuth, async (req, res) => {
-    try {
-        const { rows } = await pool.query('SELECT * FROM skill_swaps WHERE offerer_id=$1 ORDER BY created_at DESC LIMIT 20', [req.session.user.id]);
-        res.json({ data: rows });
-    } catch (err) { serverError(res, err); }
-});
-
-app.get('/api/time-credits/balance', requireAuth, async (req, res) => {
-    try {
-        const { rows } = await pool.query('SELECT COALESCE(SUM(amount),0) AS balance FROM time_credits_ledger WHERE user_id=$1', [req.session.user.id]);
-        res.json({ balance: parseInt(rows[0]?.balance || 0) });
-    } catch (err) { serverError(res, err); }
-});
-
-app.post('/api/skill-swaps', requireAuth, async (req, res) => {
-    const { zone_id, offering, seeking, time_credits_offered } = req.body;
-    try {
-        const { rows } = await pool.query(
-            'INSERT INTO skill_swaps (zone_id, offerer_id, offering, seeking, time_credits_offered) VALUES ($1,$2,$3,$4,$5) RETURNING *',
-            [zone_id || null, req.session.user.id, offering, seeking, time_credits_offered || 1]
-        );
-        res.json({ data: rows[0] });
-    } catch (err) { serverError(res, err); }
-});
-
-app.patch('/api/skill-swaps/:id/match', requireAuth, async (req, res) => {
-    try {
-        await pool.query(
-            "UPDATE skill_swaps SET status='matched', matched_with_user_id=$1, updated_at=NOW() WHERE id=$2",
-            [req.session.user.id, req.params.id]
-        );
-        res.json({ success: true });
-    } catch (err) { serverError(res, err); }
-});
-
-app.get('/api/disputes', requireAuth, async (req, res) => {
-    try {
-        const { rows } = await pool.query(
-            "SELECT * FROM disputes WHERE raised_by=$1 OR against_id=$1 OR status IN ('open','voting') ORDER BY created_at DESC",
-            [req.session.user.id]
-        );
-        res.json({ data: rows });
-    } catch (err) { serverError(res, err); }
-});
-
-app.get('/api/jury-assignments/my', requireAuth, async (req, res) => {
-    try {
-        const { rows } = await pool.query('SELECT dispute_id, vote FROM jury_assignments WHERE juror_user_id=$1', [req.session.user.id]);
-        res.json({ data: rows });
-    } catch (err) { serverError(res, err); }
-});
-
-app.post('/api/jury-assignments', requireAuth, async (req, res) => {
-    const { dispute_id, vote } = req.body;
-    try {
-        await pool.query(
-            'INSERT INTO jury_assignments (dispute_id, juror_user_id, vote, voted_at) VALUES ($1,$2,$3,NOW()) ON CONFLICT (dispute_id, juror_user_id) DO UPDATE SET vote=$3, voted_at=NOW()',
-            [dispute_id, req.session.user.id, vote]
-        );
-        res.json({ success: true });
-    } catch (err) { serverError(res, err); }
-});
-
-app.get('/api/events', async (req, res) => {
-    try {
-        const { rows } = await pool.query("SELECT * FROM events ORDER BY date ASC LIMIT 60");
-        res.json({ data: rows });
-    } catch (err) { serverError(res, err); }
-});
-
-app.post('/api/events', requireAuth, async (req, res) => {
-    const { title, description, category, venue_name, venue_type, address, date, start_time, end_time, organizer_name, ticket_price, is_free, total_tickets, bundle_services, cover_image_url } = req.body;
-    try {
-        const { rows } = await pool.query(
-            'INSERT INTO events (title, description, category, venue_name, venue_type, address, date, start_time, end_time, organizer_name, organizer_id, ticket_price, is_free, total_tickets, bundle_services, cover_image_url) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING *',
-            [title, description || null, category || 'other', venue_name || null, venue_type || null, address || null, date || null, start_time || null, end_time || null, organizer_name || null, req.session.user.id, ticket_price || 0, is_free !== false, total_tickets || 100, JSON.stringify(bundle_services || []), cover_image_url || null]
-        );
-        res.json({ data: rows[0] });
-    } catch (err) { serverError(res, err); }
-});
-
-app.get('/api/event-tickets/my', requireAuth, async (req, res) => {
-    try {
-        const { rows } = await pool.query("SELECT * FROM event_tickets WHERE buyer_email=$1 ORDER BY created_at DESC", [req.session.user.email]);
-        res.json({ data: rows });
-    } catch (err) { serverError(res, err); }
-});
-
-app.post('/api/event-tickets', requireAuth, async (req, res) => {
-    const { event_id, event_title, quantity, unit_price } = req.body;
-    const total = (quantity || 1) * (unit_price || 0);
-    const code = crypto.randomBytes(4).toString('hex').toUpperCase();
-    try {
-        const { rows } = await pool.query(
-            'INSERT INTO event_tickets (event_id, event_title, buyer_email, buyer_name, quantity, unit_price, total_amount, ticket_code) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
-            [event_id, event_title || null, req.session.user.email, req.session.user.full_name || null, quantity || 1, unit_price || 0, total, code]
-        );
-        await pool.query('UPDATE events SET tickets_sold = COALESCE(tickets_sold,0) + $1 WHERE id=$2', [quantity || 1, event_id]);
-        res.json({ data: rows[0] });
-    } catch (err) { serverError(res, err); }
-});
-
-app.get('/api/community-posts', async (req, res) => {
-    try {
-        const { rows } = await pool.query("SELECT * FROM community_posts ORDER BY created_date DESC LIMIT 50");
-        res.json({ data: rows });
-    } catch (err) { serverError(res, err); }
-});
-
-app.post('/api/community-posts', requireAuth, async (req, res) => {
-    const { type, title, body, image_url } = req.body;
-    try {
-        const { rows } = await pool.query(
-            'INSERT INTO community_posts (type, title, body, author_name, author_email, author_id, image_url) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
-            [type || 'post', title || null, body, req.session.user.full_name || req.session.user.email, req.session.user.email, req.session.user.id, image_url || null]
-        );
-        res.json({ data: rows[0] });
-    } catch (err) { serverError(res, err); }
-});
-
-app.patch('/api/community-posts/:id/vote', requireAuth, async (req, res) => {
-    const { delta } = req.body;
-    try {
-        await pool.query('UPDATE community_posts SET upvotes = GREATEST(0, COALESCE(upvotes,0) + $1) WHERE id=$2', [delta || 1, req.params.id]);
-        res.json({ success: true });
-    } catch (err) { serverError(res, err); }
-});
-
-app.get('/api/post-comments/:postId', async (req, res) => {
-    try {
-        const { rows } = await pool.query('SELECT * FROM post_comments WHERE post_id=$1 ORDER BY created_at ASC', [req.params.postId]);
-        res.json({ data: rows });
-    } catch (err) { serverError(res, err); }
-});
-
-app.post('/api/post-comments', requireAuth, async (req, res) => {
-    const { post_id, body } = req.body;
-    try {
-        const { rows } = await pool.query(
-            'INSERT INTO post_comments (post_id, author_email, author_name, body) VALUES ($1,$2,$3,$4) RETURNING *',
-            [post_id, req.session.user.email, req.session.user.full_name || req.session.user.email, body]
-        );
-        await pool.query('UPDATE community_posts SET reply_count = COALESCE(reply_count,0) + 1 WHERE id=$1', [post_id]);
-        res.json({ data: rows[0] });
-    } catch (err) { serverError(res, err); }
-});
-
-app.get('/api/neighborhood-polls', async (req, res) => {
-    try {
-        const { rows } = await pool.query("SELECT * FROM neighborhood_polls ORDER BY created_at DESC LIMIT 20");
-        res.json({ data: rows });
-    } catch (err) { serverError(res, err); }
-});
-
-app.post('/api/neighborhood-polls', requireAuth, async (req, res) => {
-    const { question, neighborhood, options } = req.body;
-    if (!question) return res.status(400).json({ error: 'question required' });
-    try {
-        const { rows } = await pool.query(
-            'INSERT INTO neighborhood_polls (question, neighborhood, options, created_by) VALUES ($1,$2,$3,$4) RETURNING *',
-            [question, neighborhood || null, JSON.stringify(options || []), req.session.user.id]
-        );
-        res.json({ data: rows[0] });
-    } catch (err) { serverError(res, err); }
-});
-
-app.patch('/api/neighborhood-polls/:id/vote', requireAuth, async (req, res) => {
-    const { options } = req.body;
-    try {
-        await pool.query('UPDATE neighborhood_polls SET options=$1 WHERE id=$2', [JSON.stringify(options), req.params.id]);
         res.json({ success: true });
     } catch (err) { serverError(res, err); }
 });

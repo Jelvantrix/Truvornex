@@ -35,8 +35,8 @@ export default function ProviderPayouts() {
     return (
         <div className="space-y-6 pb-8">
             <div>
-                <h1 className="font-inter font-black text-2xl tracking-tight">Provider Payouts</h1>
-                <p className="text-zinc-400 text-sm">Manage earnings and disbursements</p>
+                <h1 className="font-inter font-black text-2xl tracking-tight" style={{ color: 'var(--color-primary)' }}>Provider Payouts</h1>
+                <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Manage earnings and disbursements</p>
             </div>
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -46,60 +46,65 @@ export default function ProviderPayouts() {
                     { label: 'Pending Payouts', value: `$${totalPayouts.toLocaleString()}` },
                     { label: 'Providers', value: providers.length },
                 ].map(k => (
-                    <div key={k.label} className="card-premium p-5">
-                        <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">{k.label}</p>
-                        <p className="font-black text-2xl text-zinc-900">{k.value}</p>
+                    <div key={k.label} className="rounded-2xl p-5 shimmer" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                        <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--color-text-muted)' }}>{k.label}</p>
+                        <p className="font-black text-2xl" style={{ color: 'var(--color-primary)' }}>{k.value}</p>
                     </div>
                 ))}
             </div>
 
-            <div className="flex gap-3">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
-                    <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search providers…" className="pl-9 rounded-xl" />
-                </div>
+            <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--color-text-muted)' }} />
+                <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search providers…" variant="lightning" className="pl-9 rounded-xl" />
             </div>
 
             {loading ? (
                 <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="skeleton-wave h-16 rounded-2xl" />)}</div>
             ) : (
-                <div className="card-premium overflow-hidden">
-                    <table className="w-full text-sm">
-                        <thead className="bg-zinc-50 text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                            <tr>
-                                <th className="text-left px-5 py-3">Provider</th>
-                                <th className="text-right px-5 py-3">Bookings</th>
-                                <th className="text-right px-5 py-3">Total Earned</th>
-                                <th className="text-right px-5 py-3">Platform Fee</th>
-                                <th className="text-right px-5 py-3">Net Payout</th>
-                                <th className="text-right px-5 py-3">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-zinc-50">
-                            {filtered.map(p => (
-                                <tr key={p.id} className="hover:bg-zinc-50 transition-colors">
-                                    <td className="px-5 py-3">
-                                        <p className="font-semibold">{p.business_name}</p>
-                                        <p className="text-xs text-zinc-400">{p.user_email}</p>
-                                    </td>
-                                    <td className="px-5 py-3 text-right">{p.bookingCount}</td>
-                                    <td className="px-5 py-3 text-right font-semibold">${p.totalEarnings.toFixed(2)}</td>
-                                    <td className="px-5 py-3 text-right text-zinc-500">${p.platformFee.toFixed(2)}</td>
-                                    <td className="px-5 py-3 text-right font-bold text-emerald-700">${p.netPayout.toFixed(2)}</td>
-                                    <td className="px-5 py-3 text-right">
+                <div className="space-y-2">
+                    {filtered.map(p => (
+                        <div key={p.id} className="card-premium rounded-2xl p-4 hover-lift transition-colors" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                <div className="flex items-start gap-3 min-w-0">
+                                    <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 text-sm font-black card-lightning-subtle" style={{ backgroundColor: 'rgba(var(--color-primary),0.12)', color: 'var(--color-primary)' }}>
+                                        {p.business_name?.[0]?.toUpperCase() || '?'}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="font-semibold text-sm" style={{ color: 'var(--color-text)' }}>{p.business_name}</p>
+                                        <p className="text-xs truncate" style={{ color: 'var(--color-text-muted)' }}>{p.user_email}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4 shrink-0">
+                                    <div className="text-right">
+                                        <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Bookings</p>
+                                        <p className="font-semibold text-sm" style={{ color: 'var(--color-text)' }}>{p.bookingCount}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Earned</p>
+                                        <p className="font-semibold text-sm" style={{ color: 'var(--color-text)' }}>${p.totalEarnings.toFixed(2)}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Fee</p>
+                                        <p className="font-semibold text-sm" style={{ color: 'var(--color-text-muted)' }}>${p.platformFee.toFixed(2)}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Net</p>
+                                        <p className="font-bold text-sm" style={{ color: 'var(--color-success)' }}>${p.netPayout.toFixed(2)}</p>
+                                    </div>
+                                    <div className="text-right">
                                         {p.netPayout > 0 ? (
-                                            <Button size="sm" variant="outline" className="rounded-lg h-7 text-xs gap-1" onClick={() => processPayout(p)}>
+                                            <Button size="sm" variant="outline" className="rounded-lg h-7 text-xs gap-1" style={{ color: 'var(--color-primary)', borderColor: 'var(--color-border)' }} onClick={() => processPayout(p)}>
                                                 <Send className="h-3 w-3" /> Pay
                                             </Button>
                                         ) : (
-                                            <span className="text-xs text-zinc-300">—</span>
+                                            <span className="text-xs" style={{ color: 'var(--color-text-subtle)' }}>—</span>
                                         )}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                    {filtered.length === 0 && <div className="p-10 text-center text-zinc-400 text-sm">No providers found</div>}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                    {filtered.length === 0 && <p className="text-sm text-center py-10" style={{ color: 'var(--color-text-muted)' }}>No providers found</p>}
                 </div>
             )}
         </div>

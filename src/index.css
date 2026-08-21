@@ -28,20 +28,36 @@
     --color-accent-light:     rgba(255,255,255,0.06);
     --color-accent-glow:      rgba(255,255,255,0.1);
 
-    /* ─── Lightning / Aura Glow Tokens ─── */
-    --glow-primary:           rgba(255,255,255,0.35);
-    --glow-secondary:         rgba(200,200,255,0.25);
-    --glow-tertiary:          rgba(180,180,255,0.15);
-    --glow-ai-primary:        rgba(124, 92, 255, 0.4);
-    --glow-ai-secondary:      rgba(92, 200, 255, 0.35);
-    --glow-ai-tertiary:       rgba(255, 92, 200, 0.3);
-    --glow-aura-1:            rgba(138, 100, 255, 0.5);
-    --glow-aura-2:            rgba(100, 200, 255, 0.45);
-    --glow-aura-3:            rgba(255, 100, 200, 0.4);
-    --glow-aura-4:            rgba(100, 255, 180, 0.35);
-    --glow-aura-5:            rgba(255, 220, 100, 0.35);
-    --glow-lightning:         rgba(255, 255, 255, 0.8);
-    --glow-lightning-soft:    rgba(255, 255, 255, 0.4);
+    /* ─── Glow System v4 — Mobile-First, Beautiful, Intentional ───
+       ONE color per theme: White on dark, Near-black on light.
+       Mobile-first: visible resting glow on primary, stronger on tap.
+       Desktop: hover adds refinement. No inner glows ever.
+       Scale: 0=none → 1=resting → 2=tap/hover → 3=focus → 4=command
+    */
+    /* Glow color — pure white on dark, pure near-black on light */
+    --glow:                   rgba(255,255,255,0.55);
+    --glow-strong:            rgba(255,255,255,0.75);
+
+    /* Scale 1 — Resting: always visible on primary elements (mobile-first) */
+    --glow-1:                 rgba(255,255,255,0.06);
+    /* Scale 2 — Tap/Hover: clear glow on interaction */
+    --glow-2:                 rgba(255,255,255,0.15);
+    /* Scale 3 — Focus: keyboard/tap focus ring */
+    --glow-3:                 rgba(255,255,255,0.25);
+    /* Scale 4 — Command: critical CTAs, loading */
+    --glow-4:                 rgba(255,255,255,0.45);
+
+    /* Blur radii — tight, refined, mobile-optimized */
+    --glow-blur-1:            6px;
+    --glow-blur-2:            18px;
+    --glow-blur-3:            12px;
+    --glow-blur-4:            36px;
+
+    /* Spread (size of glow ring) */
+    --glow-spread-1:          0;
+    --glow-spread-2:          2px;
+    --glow-spread-3:          0;
+    --glow-spread-4:          4px;
 
     /* Text */
     --color-text:             #e8e8e8;
@@ -109,20 +125,24 @@
     --color-accent-light:     rgba(0,0,0,0.05);
     --color-accent-glow:      rgba(0,0,0,0.1);
 
-    /* ─── Lightning / Aura Glow Tokens (Light) ─── */
-    --glow-primary:           rgba(0,0,0,0.25);
-    --glow-secondary:         rgba(55, 55, 100, 0.2);
-    --glow-tertiary:          rgba(80, 80, 120, 0.12);
-    --glow-ai-primary:        rgba(124, 92, 255, 0.35);
-    --glow-ai-secondary:      rgba(92, 200, 255, 0.3);
-    --glow-ai-tertiary:       rgba(255, 92, 200, 0.25);
-    --glow-aura-1:            rgba(138, 100, 255, 0.4);
-    --glow-aura-2:            rgba(100, 200, 255, 0.35);
-    --glow-aura-3:            rgba(255, 100, 200, 0.3);
-    --glow-aura-4:            rgba(100, 255, 180, 0.3);
-    --glow-aura-5:            rgba(255, 220, 100, 0.3);
-    --glow-lightning:         rgba(0, 0, 0, 0.6);
-    --glow-lightning-soft:    rgba(0, 0, 0, 0.3);
+    /* ─── Glow System v4 — Mobile-First (Light) ─── */
+    --glow:                   rgba(8,8,8,0.45);
+    --glow-strong:            rgba(8,8,8,0.65);
+
+    --glow-1:                 rgba(8,8,8,0.05);
+    --glow-2:                 rgba(8,8,8,0.12);
+    --glow-3:                 rgba(8,8,8,0.2);
+    --glow-4:                 rgba(8,8,8,0.4);
+
+    --glow-blur-1:            6px;
+    --glow-blur-2:            18px;
+    --glow-blur-3:            12px;
+    --glow-blur-4:            36px;
+
+    --glow-spread-1:          0;
+    --glow-spread-2:          2px;
+    --glow-spread-3:          0;
+    --glow-spread-4:          4px;
 
     --color-text:             #111111;
     --color-text-muted:       #444444;
@@ -545,9 +565,7 @@ html.dark .border-zinc-200.rounded-xl { border-color: var(--color-border) !impor
         transition: none;
     }
 
-    /* Glow */
-    .glow-white   { box-shadow: var(--shadow-glow); }
-    .glow-strong  { box-shadow: var(--shadow-glow-strong); }
+    /* ── Glow ── */
     .glow-success { box-shadow: 0 0 16px rgba(110,231,183,0.15); }
     .glow-error   { box-shadow: 0 0 16px rgba(252,165,165,0.15); }
 
@@ -591,269 +609,142 @@ html.dark .border-zinc-200.rounded-xl { border-color: var(--color-border) !impor
     /* Display font — Faster One (FK Screamer alternative) */
     .font-screamer { font-family: 'Faster One', cursive; }
 
-    /* ═══════════════════════════════════════════════════════════════════
-       ⚡ LIGHTNING / AURA GLOW — ONLY GLOW, NOTHING ELSE
-       ═══════════════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════════════
+       ⚡ GLOW SYSTEM v3 — Minimal · Structured · Beautiful
+       ONE color per theme — White in dark, Near-black in light.
+       OUTER glow only. No inner glows. Applied on buttons & cards.
+       Scale: whisper (focus) → gentle (hover) → purposeful (primary)
+       ════════════════════════════════════════════════════════════════ */
 
     /* ── Keyframes ── */
     @keyframes glow-pulse {
-        0%, 100% { opacity: 0.3; }
-        50% { opacity: 0.7; }
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 1; }
     }
 
-    @keyframes aura-flow {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-
-    @keyframes aura-spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-
-    /* ── Button: aura glow ring ── */
+    /* ── Buttons ───────────────────────────────────────────────────
+       Glow appears OUTSIDE the button — an aura, not a fill.
+       Primary: gentle on hover, purposeful on press.
+       Outline/Ghost: whisper on hover only.                */
     .btn-lightning {
         position: relative;
-        isolation: isolate;
+        transition: box-shadow 0.3s var(--ease-out-quart), transform 0.2s var(--ease-out-quart);
+    }
+    .btn-lightning:hover {
+        box-shadow: 
+            0 0 var(--glow-blur-2) var(--glow-spread-2) var(--glow-2),
+            0 0 var(--glow-blur-3) var(--glow-spread-2) var(--glow-1);
+    }
+    .btn-lightning:active {
+        box-shadow: 
+            0 0 var(--glow-blur-3) var(--glow-spread-3) var(--glow-3),
+            0 0 var(--glow-blur-4) var(--glow-spread-3) var(--glow-2);
     }
 
-    .btn-lightning::before {
-        content: '';
-        position: absolute;
-        inset: -3px;
-        border-radius: inherit;
-        background: linear-gradient(135deg, var(--glow-aura-1), var(--glow-aura-2), var(--glow-aura-3), var(--glow-aura-4), var(--glow-aura-5));
-        background-size: 400% 400%;
-        opacity: 0;
-        filter: blur(12px);
-        z-index: -1;
-        transition: opacity 0.3s ease-out;
-    }
-
-    .btn-lightning:hover::before {
-        opacity: 1;
-        animation: aura-flow 3s ease-in-out infinite;
-    }
-
-    .btn-lightning-ai {
-        position: relative;
-        isolation: isolate;
-    }
-
-    .btn-lightning-ai::before {
-        content: '';
-        position: absolute;
-        inset: -3px;
-        border-radius: inherit;
-        background: conic-gradient(from 0deg, var(--glow-ai-primary), var(--glow-ai-secondary), var(--glow-ai-tertiary), var(--glow-ai-primary));
-        opacity: 0;
-        filter: blur(14px);
-        z-index: -1;
-        transition: opacity 0.3s ease-out;
-    }
-
-    .btn-lightning-ai:hover::before {
-        opacity: 1;
-        animation: aura-spin 4s linear infinite;
-    }
-
+    /* Outline / Ghost / Secondary — whisper on hover */
     .btn-lightning-subtle {
-        transition: box-shadow 0.2s ease-out, transform 0.1s ease-out;
+        position: relative;
+        transition: box-shadow 0.3s var(--ease-out-quart), border-color 0.3s var(--ease-out-quart);
     }
-
     .btn-lightning-subtle:hover {
-        box-shadow: 0 0 16px var(--glow-secondary), 0 0 32px var(--glow-tertiary);
+        box-shadow: 0 0 var(--glow-blur-1) var(--glow-spread-1) var(--glow-1);
+        border-color: var(--color-border-accent);
     }
 
-    /* ── Card: aura glow ── */
+    /* ── Cards ─────────────────────────────────────────────────────
+       Glow wraps the card — a subtle outer halo on hover.
+       Elevated cards: visible halo. Subtle cards: whisper halo. */
     .card-lightning {
         position: relative;
-        isolation: isolate;
+        transition: box-shadow 0.35s var(--ease-out-quart), transform 0.35s var(--ease-out-quart), border-color 0.35s var(--ease-out-quart);
     }
-
-    .card-lightning::before {
-        content: '';
-        position: absolute;
-        inset: -2px;
-        border-radius: inherit;
-        background: linear-gradient(135deg, var(--glow-aura-1), var(--glow-aura-2), var(--glow-aura-3), var(--glow-aura-4));
-        background-size: 300% 300%;
-        opacity: 0;
-        filter: blur(20px);
-        z-index: -1;
-        transition: opacity 0.35s ease-out;
-    }
-
-    .card-lightning:hover::before {
-        opacity: 0.7;
-        animation: aura-flow 4s ease-in-out infinite;
-    }
-
-    .card-lightning-ai {
-        position: relative;
-        isolation: isolate;
-    }
-
-    .card-lightning-ai::before {
-        content: '';
-        position: absolute;
-        inset: -2px;
-        border-radius: inherit;
-        background: conic-gradient(from 0deg, var(--glow-ai-primary), var(--glow-ai-secondary), var(--glow-ai-tertiary), var(--glow-ai-primary));
-        opacity: 0;
-        filter: blur(22px);
-        z-index: -1;
-        transition: opacity 0.35s ease-out;
-    }
-
-    .card-lightning-ai:hover::before {
-        opacity: 0.6;
-        animation: aura-spin 6s linear infinite;
+    .card-lightning:hover {
+        box-shadow:
+            0 0 0 1px var(--glow-2),
+            0 0 var(--glow-blur-2) var(--glow-spread-2) var(--glow-2),
+            0 0 var(--glow-blur-3) var(--glow-spread-2) var(--glow-1);
+        border-color: var(--color-border-accent);
     }
 
     .card-lightning-subtle {
-        transition: box-shadow 0.25s ease-out;
+        position: relative;
+        transition: box-shadow 0.35s var(--ease-out-quart), border-color 0.35s var(--ease-out-quart);
     }
-
     .card-lightning-subtle:hover {
-        box-shadow: 0 0 0 1px var(--glow-primary), 0 0 24px var(--glow-secondary), 0 0 48px var(--glow-tertiary);
+        box-shadow:
+            0 0 0 1px var(--glow-1),
+            0 0 var(--glow-blur-1) var(--glow-spread-1) var(--glow-1);
+        border-color: var(--color-border-accent);
     }
 
-    /* ── Section: ambient aura ── */
-    .section-lightning,
-    .section-lightning-ai {
+    /* ── Inputs ────────────────────────────────────────────────────
+       Focus ring uses the same single color — tight & refined. */
+    .input-lightning,
+    .input-lightning-ai {
+        transition: box-shadow 0.2s var(--ease-out-quart), border-color 0.2s var(--ease-out-quart);
+    }
+    .input-lightning:focus,
+    .input-lightning-ai:focus {
+        box-shadow:
+            0 0 0 2px var(--glow-1),
+            0 0 var(--glow-blur-1) var(--glow-spread-1) var(--glow-1);
+        border-color: var(--color-border-accent);
+    }
+
+    /* ── Sections ──────────────────────────────────────────────────
+       Ambient glow only on .section-lightning — soft, wide, static.
+       Never on .card-lightning-subtle.                          */
+    .section-lightning {
         position: relative;
         isolation: isolate;
     }
-
     .section-lightning::before {
         content: '';
         position: absolute;
-        top: -40%; left: -40%;
-        width: 180%; height: 180%;
-        background: radial-gradient(ellipse at center, var(--glow-aura-1), var(--glow-aura-2), transparent 70%);
-        opacity: 0;
-        filter: blur(60px);
+        top: -20%; left: -20%;
+        width: 140%; height: 140%;
+        background: radial-gradient(ellipse at center, var(--glow-1), transparent 70%);
+        filter: blur(var(--glow-blur-4));
         z-index: -1;
-        transition: opacity 0.5s ease-out;
-    }
-
-    .section-lightning:hover::before {
-        opacity: 0.15;
-        animation: aura-flow 8s ease-in-out infinite;
-    }
-
-    .section-lightning-ai::before {
-        content: '';
-        position: absolute;
-        top: -40%; left: -40%;
-        width: 180%; height: 180%;
-        background: conic-gradient(from 0deg, var(--glow-ai-primary), var(--glow-ai-secondary), var(--glow-ai-tertiary), var(--glow-ai-primary));
-        opacity: 0;
-        filter: blur(80px);
-        z-index: -1;
-        transition: opacity 0.5s ease-out;
-    }
-
-    .section-lightning-ai:hover::before {
-        opacity: 0.12;
-        animation: aura-spin 12s linear infinite;
-    }
-
-    /* ── Input: focus glow ── */
-    .input-lightning,
-    .input-lightning-ai {
-        transition: box-shadow 0.2s ease-out, border-color 0.2s ease-out;
-    }
-
-    .input-lightning:focus {
-        box-shadow: 0 0 0 3px var(--glow-primary), 0 0 24px var(--glow-secondary);
-        border-color: var(--color-border-accent);
-    }
-
-    .input-lightning-ai:focus {
-        box-shadow: 0 0 0 3px var(--glow-ai-primary), 0 0 24px var(--glow-ai-secondary);
-        border-color: var(--color-border-accent);
-    }
-
-    /* ── Glow ring utility ── */
-    .glow-ring::before,
-    .glow-ring-ai::before {
-        content: '';
-        position: absolute;
-        inset: -4px;
-        border-radius: inherit;
-        opacity: 0;
-        filter: blur(8px);
-        transition: opacity 0.3s;
-        z-index: -1;
+        opacity: 0.5;
         pointer-events: none;
     }
 
-    .glow-ring::before {
-        background: radial-gradient(circle, var(--glow-primary), var(--glow-secondary), transparent 70%);
+    /* ── Ring utility ──────────────────────────────────────────────
+       For avatars, icons, badges — outer ring on hover.            */
+    .glow-ring {
+        position: relative;
+        transition: box-shadow 0.25s var(--ease-out-quart);
+    }
+    .glow-ring:hover {
+        box-shadow: 0 0 var(--glow-blur-1) var(--glow-spread-1) var(--glow-1);
     }
 
-    .glow-ring-ai::before {
-        background: radial-gradient(circle, var(--glow-ai-primary), var(--glow-ai-secondary), transparent 70%);
+    /* ── Focus (keyboard) ────────────────────────────────────────── */
+    .focus-glow:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--glow-1);
     }
 
-    .glow-ring:hover::before,
-    .glow-ring-ai:hover::before {
-        opacity: 0.8;
-        animation: glow-pulse 3s ease-in-out infinite;
-    }
-
-    /* ── Border glow ── */
-    .border-lightning,
-    .border-lightning-ai {
-        border: 1px solid transparent;
-        background: linear-gradient(var(--color-surface), var(--color-surface)) padding-box;
-        transition: opacity 0.3s;
-    }
-
-    .border-lightning {
-        background-image: linear-gradient(var(--color-surface), var(--color-surface)), linear-gradient(135deg, var(--glow-aura-1), var(--glow-aura-2), var(--glow-aura-3));
-        background-size: 100% 100%, 300% 300%;
-        background-origin: padding-box, border-box;
-    }
-
-    .border-lightning:hover {
-        animation: aura-flow 3s ease-in-out infinite;
-    }
-
-    .border-lightning-ai {
-        background-image: linear-gradient(var(--color-surface), var(--color-surface)), conic-gradient(from 0deg, var(--glow-ai-primary), var(--glow-ai-secondary), var(--glow-ai-tertiary), var(--glow-ai-primary));
-        background-size: 100% 100%, 300% 300%;
-        background-origin: padding-box, border-box;
-    }
-
-    .border-lightning-ai:hover {
-        animation: aura-spin 4s linear infinite;
-    }
-
-    /* Reduced motion */
+    /* ── Reduced motion ──────────────────────────────────────────── */
     @media (prefers-reduced-motion: reduce) {
-        .btn-lightning::before, .btn-lightning-ai::before,
-        .card-lightning::before, .card-lightning-ai::before,
-        .section-lightning::before, .section-lightning-ai::before,
-        .glow-ring::before, .glow-ring-ai::before,
-        .border-lightning, .border-lightning-ai {
-            animation: none !important;
+        .btn-lightning, .btn-lightning-subtle,
+        .card-lightning, .card-lightning-subtle,
+        .input-lightning, .input-lightning-ai,
+        .glow-ring {
             transition: none !important;
         }
     }
 
-    /* Touch devices - no hover */
+    /* ── Touch devices — active state instead of hover ───────────── */
     @media (hover: none) and (pointer: coarse) {
-        .btn-lightning::before, .btn-lightning-ai::before,
-        .card-lightning::before, .card-lightning-ai::before,
-        .section-lightning::before, .section-lightning-ai::before {
-            display: none;
+        .btn-lightning:active {
+            box-shadow: 0 0 var(--glow-blur-3) var(--glow-spread-3) var(--glow-3);
+        }
+        .card-lightning:active {
+            box-shadow: 0 0 var(--glow-blur-2) var(--glow-spread-2) var(--glow-2);
         }
     }
-
     /* ═══════════════════════════════════════════════════════════════════
        📱 RESPONSIVE UTILITIES & FIXES
        ═══════════════════════════════════════════════════════════════════ */

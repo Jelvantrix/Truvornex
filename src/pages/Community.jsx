@@ -4,7 +4,7 @@ import {
     Megaphone, Search, HelpCircle, Briefcase, RefreshCw, Plus,
     MessageCircle, Send, MapPin, Share2, Heart, Bookmark,
     ImageIcon, X, Camera, Loader2, BarChart2, Calendar,
-    ChevronRight, Ticket, Users, Check, Vote, ArrowRight,
+    ChevronRight, Ticket, Users, Vote, ArrowRight,
     CheckCircle2, Music, Wrench, Zap, Sparkles, UtensilsCrossed,
     GraduationCap, Star
 } from 'lucide-react';
@@ -50,7 +50,7 @@ const CAT_ICON_MAP = {
 
 function Avatar({ name, email, size = 8 }) {
     const initial = (name || email || 'A').charAt(0).toUpperCase();
-    const colors = ['bg-violet-500','bg-rose-500','bg-amber-500','bg-emerald-500','bg-sky-500','bg-pink-500','bg-indigo-500'];
+    const colors = ['bg-violet-500','bg-rose-500','bg-sky-500','bg-pink-500','bg-indigo-500','bg-blue-500'];
     const color = colors[initial.charCodeAt(0) % colors.length];
     const px = size * 4;
     return (
@@ -100,7 +100,7 @@ function PostComments({ postId, user, replyCount, onCountChange }) {
     const count = replyCount || 0;
     return (
         <div className="px-4 pb-3">
-            <button onClick={() => setOpen(v => !v)} className="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">
+            <button onClick={() => setOpen(v => !v)} className="text-xs transition-colors" style={{ color: 'var(--color-text-muted)' }}>
                 {open ? 'Hide comments' : count > 0 ? `View all ${count} comment${count !== 1 ? 's' : ''}` : 'Add a comment'}
             </button>
             {open && (
@@ -110,23 +110,24 @@ function PostComments({ postId, user, replyCount, onCountChange }) {
                         <div key={c.id} className="flex gap-2 items-start">
                             <Avatar name={c.author_name} email={c.author_email} size={6} />
                             <div className="flex-1 min-w-0">
-                                <span className="text-xs font-semibold text-zinc-900 dark:text-white mr-1.5">
+                                <span className="text-xs font-semibold leading-none" style={{ color: 'var(--color-primary)' }}>
                                     {c.author_name || c.author_email?.split('@')[0]}
                                 </span>
-                                <span className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed">{c.body}</span>
+                                <span className="text-xs leading-relaxed" style={{ color: 'var(--color-text)' }}>{c.body}</span>
                             </div>
                         </div>
                     ))}
-                    <div className="flex gap-2 items-center pt-1 border-t border-zinc-100 dark:border-zinc-800">
+                    <div className="flex gap-2 items-center pt-1" style={{ borderTop: '1px solid var(--color-border)' }}>
                         {user && <Avatar name={user.full_name} email={user.email} size={6} />}
                         <input value={input} onChange={e => setInput(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && submit()}
                             placeholder={user ? 'Add a comment' : 'Sign in to comment'}
                             disabled={!user || submitting}
-                            className="flex-1 text-xs bg-transparent outline-none border-b border-zinc-200 dark:border-zinc-700 py-1 text-zinc-900 dark:text-white placeholder:text-zinc-400" />
+                            className="flex-1 text-xs bg-transparent outline-none border-b py-1 input-lightning"
+                            style={{ borderColor: 'var(--color-border)', color: 'var(--color-primary)' }} />
                         {input.trim() && (
                             <button onClick={submit} disabled={submitting}
-                                className="text-xs font-bold text-zinc-900 dark:text-white shrink-0 hover:opacity-70 transition-opacity">Post</button>
+                                className="text-xs font-bold shrink-0 transition-opacity hover:opacity-70" style={{ color: 'var(--color-primary)' }}>Post</button>
                         )}
                     </div>
                 </div>
@@ -150,23 +151,23 @@ function PostCard({ post, onLike, likedPosts, user }) {
     })();
 
     return (
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden">
+        <div className="card-premium overflow-hidden shimmer hover-lift">
             <div className="flex items-center gap-2.5 px-4 pt-4 pb-3">
                 <Avatar name={post.author_name} email={post.author_email} size={9} />
                 <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-zinc-900 dark:text-white leading-none">{authorName}</p>
+                    <p className="text-sm font-semibold leading-none" style={{ color: 'var(--color-primary)' }}>{authorName}</p>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                        {post.neighborhood && <span className="text-[10px] text-zinc-400 flex items-center gap-0.5"><MapPin className="h-2.5 w-2.5" />{post.neighborhood}</span>}
-                        <span className="text-[10px] text-zinc-400">{timeAgo}</span>
+                        {post.neighborhood && <span className="text-[10px] flex items-center gap-0.5" style={{ color: 'var(--color-text-muted)' }}><MapPin className="h-2.5 w-2.5" />{post.neighborhood}</span>}
+                        <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>{timeAgo}</span>
                     </div>
                 </div>
-                <span className="flex items-center gap-1 text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full">
+                <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ color: 'var(--color-text-muted)', backgroundColor: 'var(--color-surface-high)' }}>
                     <cfg.icon className="h-3 w-3" /> {cfg.label}
                 </span>
             </div>
 
             {post.image_url && (
-                <div className="relative bg-zinc-100 dark:bg-zinc-800" style={{ aspectRatio: '4/3' }}>
+                <div className="relative" style={{ backgroundColor: 'var(--color-surface-high)', aspectRatio: '4/3' }}>
                     {!imgLoaded && <div className="absolute inset-0 skeleton-wave" />}
                     <img src={post.image_url} alt="" className={`w-full h-full object-cover transition-opacity duration-300 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`} onLoad={() => setImgLoaded(true)} />
                 </div>
@@ -174,41 +175,41 @@ function PostCard({ post, onLike, likedPosts, user }) {
 
             <div className="flex items-center gap-3 px-4 pt-3 pb-2">
                 <button onClick={() => onLike(post)} className="transition-all active:scale-90">
-                    <Heart className={`h-5 w-5 transition-all ${isLiked ? 'fill-rose-500 text-rose-500 scale-110' : 'text-zinc-400 dark:text-zinc-500'}`} strokeWidth={isLiked ? 0 : 1.8} />
+                    <Heart className={`h-5 w-5 transition-all ${isLiked ? 'fill-rose-500 text-rose-500 scale-110' : ''}`} strokeWidth={isLiked ? 0 : 1.8} style={!isLiked ? { color: 'var(--color-text-muted)' } : undefined} />
                 </button>
-                <button className="text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 transition-colors">
+                <button className="transition-colors hover:opacity-70" style={{ color: 'var(--color-text-muted)' }}>
                     <MessageCircle className="h-5 w-5" strokeWidth={1.8} />
                 </button>
-                <button className="text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 transition-colors" onClick={() => { navigator.clipboard?.writeText(window.location.href); toast('Link copied'); }}>
+                <button className="transition-colors hover:opacity-70" style={{ color: 'var(--color-text-muted)' }} onClick={() => { navigator.clipboard?.writeText(window.location.href); toast('Link copied'); }}>
                     <Share2 className="h-5 w-5" strokeWidth={1.8} />
                 </button>
                 <div className="flex-1" />
-                <button className="text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 transition-colors">
+                <button className="transition-colors hover:opacity-70" style={{ color: 'var(--color-text-muted)' }}>
                     <Bookmark className="h-5 w-5" strokeWidth={1.8} />
                 </button>
             </div>
 
             {(post.upvotes || 0) > 0 && (
-                <p className="px-4 text-xs font-semibold text-zinc-900 dark:text-white pb-1">{post.upvotes} {post.upvotes === 1 ? 'like' : 'likes'}</p>
+                <p className="px-4 text-xs font-semibold pb-1" style={{ color: 'var(--color-primary)' }}>{post.upvotes} {post.upvotes === 1 ? 'like' : 'likes'}</p>
             )}
 
             <div className="px-4 pb-3">
-                {post.title && <p className="text-sm font-semibold text-zinc-900 dark:text-white mb-0.5">{post.title}</p>}
+                {post.title && <p className="text-sm font-semibold mb-0.5" style={{ color: 'var(--color-primary)' }}>{post.title}</p>}
                 {post.body && (
-                    <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed line-clamp-3">
-                        <span className="font-semibold text-zinc-900 dark:text-white mr-1.5">{authorName}</span>{post.body}
+                    <p className="text-sm leading-relaxed line-clamp-3" style={{ color: 'var(--color-text)' }}>
+                        <span className="font-semibold mr-1.5" style={{ color: 'var(--color-primary)' }}>{authorName}</span>{post.body}
                     </p>
                 )}
                 {post.type === 'skill_exchange' && (post.skill_offer || post.skill_want) && (
                     <div className="mt-2 flex items-center gap-2 text-xs flex-wrap">
                         {post.skill_offer && (
-                            <span className="bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300 px-2 py-0.5 rounded-full border border-teal-200 dark:border-teal-800 flex items-center gap-1">
+                            <span className="px-2 py-0.5 rounded-full border flex items-center gap-1" style={{ backgroundColor: 'var(--color-accent-light)', color: 'var(--color-text)', borderColor: 'var(--color-border-strong)' }}>
                                 <GraduationCap className="h-2.5 w-2.5" /> {post.skill_offer}
                             </span>
                         )}
-                        <ArrowRight className="h-3 w-3 text-zinc-300" />
+                        <ArrowRight className="h-3 w-3" style={{ color: 'var(--color-text-muted)' }} />
                         {post.skill_want && (
-                            <span className="bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 px-2 py-0.5 rounded-full border border-violet-200 dark:border-violet-800 flex items-center gap-1">
+                            <span className="px-2 py-0.5 rounded-full border flex items-center gap-1" style={{ backgroundColor: 'var(--color-accent-light)', color: 'var(--color-text)', borderColor: 'var(--color-border-strong)' }}>
                                 <Search className="h-2.5 w-2.5" /> {post.skill_want}
                             </span>
                         )}
@@ -225,21 +226,21 @@ function PostCard({ post, onLike, likedPosts, user }) {
 function JobCard({ post }) {
     const authorName = post.author_name || post.author_email?.split('@')[0] || 'Anonymous';
     return (
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all group">
+        <div className="card-premium p-4 hover-lift group" style={{ borderColor: 'var(--color-border)' }}>
             <div className="flex items-start gap-3">
                 <Avatar name={post.author_name} email={post.author_email} size={10} />
                 <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm text-zinc-900 dark:text-white line-clamp-1">{post.title}</p>
-                    <p className="text-xs text-zinc-400">{authorName}</p>
+                    <p className="font-semibold text-sm line-clamp-1" style={{ color: 'var(--color-primary)' }}>{post.title}</p>
+                    <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{authorName}</p>
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
-                        {post.job_type && <span className="text-[10px] font-semibold border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 px-2 py-0.5 rounded-full">{JOB_TYPES[post.job_type] || post.job_type}</span>}
-                        {post.neighborhood && <span className="text-[10px] text-zinc-400 flex items-center gap-1"><MapPin className="h-2.5 w-2.5" />{post.neighborhood}</span>}
-                        {post.job_salary && <span className="text-[10px] font-semibold text-emerald-600">{post.job_salary}</span>}
+                        {post.job_type && <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border" style={{ borderColor: 'var(--color-border-strong)', color: 'var(--color-text-muted)' }}>{JOB_TYPES[post.job_type] || post.job_type}</span>}
+                        {post.neighborhood && <span className="text-[10px] flex items-center gap-1" style={{ color: 'var(--color-text-muted)' }}><MapPin className="h-2.5 w-2.5" />{post.neighborhood}</span>}
+                        {post.job_salary && <span className="text-[10px] font-semibold" style={{ color: 'var(--color-success)' }}>{post.job_salary}</span>}
                     </div>
                 </div>
                 <Button size="sm" variant="outline" className="h-7 rounded-lg text-[10px] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">Apply</Button>
             </div>
-            {post.body && <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 line-clamp-2">{post.body}</p>}
+            {post.body && <p className="text-xs mt-2 line-clamp-2" style={{ color: 'var(--color-text-muted)' }}>{post.body}</p>}
         </div>
     );
 }
@@ -272,43 +273,44 @@ function PollCard({ poll, user }) {
     };
 
     return (
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5">
+        <div className="card-premium p-5 hover-lift" style={{ borderColor: 'var(--color-border)' }}>
             <div className="flex items-center gap-2.5 mb-4">
                 <Avatar name={poll.created_by_name} email={poll.created_by_email} size={8} />
                 <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-zinc-900 dark:text-white">{poll.created_by_name}</p>
-                    <p className="text-[10px] text-zinc-400">
+                    <p className="text-xs font-semibold" style={{ color: 'var(--color-primary)' }}>{poll.created_by_name}</p>
+                    <p className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
                         {poll.neighborhood && <><MapPin className="inline h-2.5 w-2.5 mr-0.5" />{poll.neighborhood} · </>}{timeAgo}
                     </p>
                 </div>
-                <span className="flex items-center gap-1 text-[10px] font-bold bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 px-2 py-0.5 rounded-full">
+                <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: 'var(--color-accent-light)', color: 'var(--color-primary)' }}>
                     <Vote className="h-3 w-3" /> Poll
                 </span>
             </div>
-            <p className="font-semibold text-sm text-zinc-900 dark:text-white mb-3 leading-snug">{poll.question}</p>
+            <p className="font-semibold text-sm mb-3 leading-snug" style={{ color: 'var(--color-primary)' }}>{poll.question}</p>
             <div className="space-y-2">
                 {options.map((opt, i) => {
                     const pct = totalVotes > 0 ? Math.round((opt.votes || 0) / totalVotes * 100) : 0;
                     const isChosen = voted === i;
                     return (
                         <button key={i} onClick={() => vote(i)} disabled={hasVoted}
-                            className={`w-full text-left rounded-xl overflow-hidden border transition-all relative ${hasVoted ? 'cursor-default' : 'hover:border-zinc-400 dark:hover:border-zinc-500'} ${isChosen ? 'border-zinc-900 dark:border-white' : 'border-zinc-200 dark:border-zinc-700'}`}>
+                            className={`w-full text-left rounded-xl overflow-hidden border transition-all relative ${hasVoted ? 'cursor-default' : 'hover-lift'}`}
+                            style={{ borderColor: isChosen ? 'var(--color-border-strong)' : 'var(--color-border)' }}>
                             {hasVoted && (
                                 <div className="absolute inset-y-0 left-0 rounded-xl transition-all duration-700"
-                                    style={{ width: `${pct}%`, background: isChosen ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.04)' }} />
+                                    style={{ width: `${pct}%`, background: isChosen ? 'rgba(var(--color-primary),0.1)' : 'rgba(var(--color-primary),0.04)' }} />
                             )}
                             <div className="relative flex items-center justify-between px-3 py-2.5">
                                 <div className="flex items-center gap-2">
-                                    {isChosen && <CheckCircle2 className="h-3.5 w-3.5 text-zinc-900 dark:text-white shrink-0" />}
-                                    <span className="text-sm text-zinc-900 dark:text-white">{opt.text}</span>
+                                    {isChosen && <CheckCircle2 className="h-3.5 w-3.5 shrink-0" style={{ color: 'var(--color-primary)' }} />}
+                                    <span className="text-sm" style={{ color: 'var(--color-primary)' }}>{opt.text}</span>
                                 </div>
-                                {hasVoted && <span className="text-xs font-bold text-zinc-600 dark:text-zinc-300">{pct}%</span>}
+                                {hasVoted && <span className="text-xs font-bold" style={{ color: 'var(--color-text-muted)' }}>{pct}%</span>}
                             </div>
                         </button>
                     );
                 })}
             </div>
-            <p className="text-[10px] text-zinc-400 mt-3">{totalVotes} vote{totalVotes !== 1 ? 's' : ''} · {hasVoted ? 'You voted' : 'Tap to vote'}</p>
+            <p className="text-[10px] mt-3" style={{ color: 'var(--color-text-muted)' }}>{totalVotes} vote{totalVotes !== 1 ? 's' : ''} · {hasVoted ? 'You voted' : 'Tap to vote'}</p>
         </div>
     );
 }
@@ -334,8 +336,8 @@ export default function Community() {
     const [imageFile, setImageFile] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
     const [saving, setSaving] = useState(false);
+    const [dragActive, setDragActive] = useState(false);
     const fileInputRef = useRef(null);
-    const dropRef = useRef(null);
 
     const loadPosts = async () => {
         setLoading(true);
@@ -455,24 +457,28 @@ export default function Community() {
             {/* Header */}
             <div className="flex items-center justify-between pt-1">
                 <div>
-                    <h1 className="font-bold text-2xl tracking-tight text-zinc-900 dark:text-white">Community</h1>
-                    <p className="text-zinc-400 dark:text-zinc-500 text-sm mt-0.5">Neighborhood feed · jobs · events · polls</p>
+                    <h1 className="font-bold text-2xl tracking-tight" style={{ color: 'var(--color-primary)' }}>Community</h1>
+                    <p className="text-sm mt-0.5" style={{ color: 'var(--color-text-muted)' }}>Neighborhood feed · jobs · events · polls</p>
                 </div>
                 <button
                     onClick={() => mainTab === 'polls'
                         ? (user ? setCreatePollDialog(true) : toast.error('Sign in first'))
                         : (user ? setCreatePostDialog(true) : toast.error('Sign in to post'))}
-                    className="h-9 px-4 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-sm font-semibold flex items-center gap-1.5 hover:opacity-80 transition-opacity">
+                    className="h-9 px-4 rounded-xl text-sm font-semibold flex items-center gap-1.5 transition-opacity hover:opacity-80 card-lightning-subtle"
+                    style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)' }}>
                     <Plus className="h-4 w-4" />
                     {mainTab === 'polls' ? 'New Poll' : 'New Post'}
                 </button>
             </div>
 
             {/* Main tabs */}
-            <div className="flex gap-1 bg-zinc-100 dark:bg-zinc-900 p-1 rounded-xl w-full overflow-x-auto">
+            <div className="flex gap-1 rounded-xl w-full overflow-x-auto p-1" style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)' }}>
                 {MAIN_TABS.map(t => (
                     <button key={t.key} onClick={() => setMainTab(t.key)}
-                        className={`h-8 px-4 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex-1 ${mainTab === t.key ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}>
+                        className={`h-8 px-4 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex-1 ${mainTab === t.key ? '' : 'hover:opacity-70'}`}
+                        style={mainTab === t.key
+                            ? { backgroundColor: 'var(--color-surface)', color: 'var(--color-primary)', boxShadow: 'var(--shadow-sm)' }
+                            : { color: 'var(--color-text-muted)' }}>
                         {t.label}
                     </button>
                 ))}
@@ -485,25 +491,28 @@ export default function Community() {
                         <div className="flex gap-1.5 flex-wrap">
                             {FILTER_PILLS.map(pill => (
                                 <button key={pill} onClick={() => setFilterPill(pill)}
-                                    className={`h-7 px-3 rounded-full text-xs font-semibold transition-all ${filterPill === pill ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'}`}>
+                                    className={`h-7 px-3 rounded-full text-xs font-semibold transition-all ${filterPill === pill ? '' : 'hover:opacity-70'}`}
+                                    style={filterPill === pill
+                                        ? { backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)' }
+                                        : { backgroundColor: 'var(--color-surface-high)', color: 'var(--color-text-muted)' }}>
                                     {pill}
                                 </button>
                             ))}
                         </div>
                         <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5" style={{ color: 'var(--color-text-muted)' }} />
                             <Input placeholder="Search posts" value={search} onChange={e => setSearch(e.target.value)}
-                                className="pl-8 h-8 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800" />
+                                className="pl-8 h-8 text-xs rounded-xl input-lightning" style={{ backgroundColor: 'var(--color-surface-high)', borderColor: 'var(--color-border)' }} />
                         </div>
                     </div>
                     {loading ? (
                         <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="skeleton-wave h-64 rounded-2xl" />)}</div>
                     ) : feedPosts.length === 0 ? (
-                        <div className="border border-zinc-200 dark:border-zinc-800 rounded-2xl p-12 text-center bg-zinc-50 dark:bg-zinc-900/50">
-                            <Camera className="h-8 w-8 mx-auto mb-3 text-zinc-300 dark:text-zinc-700" strokeWidth={1.5} />
-                            <p className="text-zinc-500 dark:text-zinc-400 text-sm font-medium">No posts yet</p>
-                            <p className="text-zinc-400 dark:text-zinc-600 text-xs mt-1">Be the first to share something</p>
-                            {user && <button onClick={() => setCreatePostDialog(true)} className="mt-4 text-xs font-semibold text-zinc-900 dark:text-white underline underline-offset-2">Create a post</button>}
+                        <div className="rounded-2xl p-12 text-center card-premium" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface-high)' }}>
+                            <Camera className="h-8 w-8 mx-auto mb-3" strokeWidth={1.5} style={{ color: 'var(--color-text-muted)' }} />
+                            <p className="text-sm font-medium" style={{ color: 'var(--color-text-muted)' }}>No posts yet</p>
+                            <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Be the first to share something</p>
+                            {user && <button onClick={() => setCreatePostDialog(true)} className="mt-4 text-xs font-semibold underline underline-offset-2" style={{ color: 'var(--color-primary)' }}>Create a post</button>}
                         </div>
                     ) : (
                         <div className="space-y-4">{feedPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} likedPosts={likedPosts} user={user} />)}</div>
@@ -515,17 +524,17 @@ export default function Community() {
             {mainTab === 'jobs' && (
                 <>
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5" style={{ color: 'var(--color-text-muted)' }} />
                         <Input placeholder="Search jobs" value={search} onChange={e => setSearch(e.target.value)}
-                            className="pl-8 h-8 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800" />
+                            className="pl-8 h-8 text-xs rounded-xl input-lightning" style={{ backgroundColor: 'var(--color-surface-high)', borderColor: 'var(--color-border)' }} />
                     </div>
                     {loading ? (
                         <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="skeleton-wave h-20 rounded-xl" />)}</div>
                     ) : feedPosts.length === 0 ? (
-                        <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-12 text-center bg-zinc-50 dark:bg-zinc-900/50">
-                            <Briefcase className="h-8 w-8 mx-auto mb-3 text-zinc-300 dark:text-zinc-700" strokeWidth={1.5} />
-                            <p className="text-zinc-400 text-sm">No jobs posted yet</p>
-                            {user && <button onClick={() => { setPostForm(p => ({ ...p, type: 'job' })); setCreatePostDialog(true); }} className="mt-3 text-xs font-semibold text-zinc-900 dark:text-white underline underline-offset-2">Post a job</button>}
+                        <div className="rounded-2xl p-12 text-center card-premium" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface-high)' }}>
+                            <Briefcase className="h-8 w-8 mx-auto mb-3" strokeWidth={1.5} style={{ color: 'var(--color-text-muted)' }} />
+                            <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>No jobs posted yet</p>
+                            {user && <button onClick={() => { setPostForm(p => ({ ...p, type: 'job' })); setCreatePostDialog(true); }} className="mt-3 text-xs font-semibold underline underline-offset-2" style={{ color: 'var(--color-primary)' }}>Post a job</button>}
                         </div>
                     ) : (
                         <div className="space-y-2.5">{feedPosts.map(p => <JobCard key={p.id} post={p} />)}</div>
@@ -537,18 +546,18 @@ export default function Community() {
             {mainTab === 'events' && (
                 <>
                     <div className="flex items-center justify-between">
-                        <p className="text-sm text-zinc-500 dark:text-zinc-400">{upcomingEvents.length} upcoming events</p>
-                        <Link to="/events" className="flex items-center gap-1 text-xs font-semibold text-zinc-900 dark:text-white hover:opacity-70 transition-opacity">
+                        <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>{upcomingEvents.length} upcoming events</p>
+                        <Link to="/events" className="flex items-center gap-1 text-xs font-semibold transition-opacity hover:opacity-70" style={{ color: 'var(--color-primary)' }}>
                             Full calendar <ArrowRight className="h-3.5 w-3.5" />
                         </Link>
                     </div>
                     {eventsLoading ? (
                         <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="skeleton-wave h-28 rounded-2xl" />)}</div>
                     ) : upcomingEvents.length === 0 ? (
-                        <div className="border border-zinc-200 dark:border-zinc-800 rounded-2xl p-12 text-center bg-zinc-50 dark:bg-zinc-900/50">
-                            <Calendar className="h-8 w-8 mx-auto mb-3 text-zinc-300 dark:text-zinc-700" strokeWidth={1.5} />
-                            <p className="text-zinc-500 text-sm font-medium">No upcoming events</p>
-                            <Link to="/events" className="mt-4 inline-block text-xs font-semibold text-zinc-900 dark:text-white underline underline-offset-2">Browse all events</Link>
+                        <div className="rounded-2xl p-12 text-center card-premium" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface-high)' }}>
+                            <Calendar className="h-8 w-8 mx-auto mb-3" strokeWidth={1.5} style={{ color: 'var(--color-text-muted)' }} />
+                            <p className="text-sm font-medium" style={{ color: 'var(--color-text-muted)' }}>No upcoming events</p>
+                            <Link to="/events" className="mt-4 inline-block text-xs font-semibold underline underline-offset-2" style={{ color: 'var(--color-primary)' }}>Browse all events</Link>
                         </div>
                     ) : (
                         <div className="space-y-3">
@@ -557,23 +566,23 @@ export default function Community() {
                                 const soldOut = (ev.tickets_sold || 0) >= (ev.total_tickets || 9999);
                                 const pct = ev.total_tickets ? Math.round((ev.tickets_sold || 0) / ev.total_tickets * 100) : 0;
                                 return (
-                                    <div key={ev.id} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden flex">
-                                        <div className="w-20 shrink-0 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-                                            <CatIcon className="h-7 w-7 text-zinc-400 dark:text-zinc-500" />
+                                    <div key={ev.id} className="card-premium overflow-hidden flex hover-lift" style={{ borderColor: 'var(--color-border)' }}>
+                                        <div className="w-20 shrink-0 flex items-center justify-center" style={{ backgroundColor: 'var(--color-surface-high)' }}>
+                                            <CatIcon className="h-7 w-7" style={{ color: 'var(--color-text-muted)' }} />
                                         </div>
                                         <div className="flex-1 p-3 min-w-0">
                                             <div className="flex items-start justify-between gap-2">
-                                                <p className="font-semibold text-sm text-zinc-900 dark:text-white line-clamp-1">{ev.title}</p>
-                                                <span className="text-[10px] font-bold shrink-0 text-emerald-600">{ev.is_free || !ev.ticket_price ? 'Free' : `$${ev.ticket_price}`}</span>
+                                                <p className="font-semibold text-sm line-clamp-1" style={{ color: 'var(--color-primary)' }}>{ev.title}</p>
+                                                <span className="text-[10px] font-bold shrink-0" style={{ color: 'var(--color-success)' }}>{ev.is_free || !ev.ticket_price ? 'Free' : `$${ev.ticket_price}`}</span>
                                             </div>
-                                            <div className="flex items-center gap-2 mt-1 text-[10px] text-zinc-400 flex-wrap">
+                                            <div className="flex items-center gap-2 mt-1 text-[10px] flex-wrap" style={{ color: 'var(--color-text-muted)' }}>
                                                 {ev.date && <span className="flex items-center gap-0.5"><Calendar className="h-2.5 w-2.5" /> {ev.date}</span>}
                                                 {ev.venue_name && <span className="flex items-center gap-0.5"><MapPin className="h-2.5 w-2.5" /> {ev.venue_name}</span>}
                                                 <span className="flex items-center gap-0.5"><Users className="h-2.5 w-2.5" /> {ev.tickets_sold || 0}/{ev.total_tickets}</span>
                                             </div>
                                             {ev.total_tickets && (
-                                                <div className="mt-2 h-1 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                                                    <div className="h-full bg-zinc-900 dark:bg-zinc-100 rounded-full" style={{ width: `${pct}%` }} />
+                                                <div className="mt-2 h-1 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--color-surface-high)' }}>
+                                                    <div className="h-full rounded-full" style={{ backgroundColor: 'var(--color-primary)', width: `${pct}%` }} />
                                                 </div>
                                             )}
                                         </div>
@@ -587,7 +596,7 @@ export default function Community() {
                                     </div>
                                 );
                             })}
-                            <Link to="/events" className="flex items-center justify-center gap-2 text-sm font-semibold text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors py-2">
+                            <Link to="/events" className="flex items-center justify-center gap-2 text-sm font-semibold py-2 transition-colors" style={{ color: 'var(--color-text-muted)' }}>
                                 See all events <ChevronRight className="h-4 w-4" />
                             </Link>
                         </div>
@@ -599,17 +608,17 @@ export default function Community() {
             {mainTab === 'polls' && (
                 <>
                     <div className="flex items-center justify-between">
-                        <p className="text-sm text-zinc-500 dark:text-zinc-400">Vote on neighborhood decisions</p>
-                        <span className="text-[10px] text-zinc-400">{polls.length} active poll{polls.length !== 1 ? 's' : ''}</span>
+                        <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Vote on neighborhood decisions</p>
+                        <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>{polls.length} active poll{polls.length !== 1 ? 's' : ''}</span>
                     </div>
                     {pollsLoading ? (
                         <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="skeleton-wave h-40 rounded-2xl" />)}</div>
                     ) : polls.length === 0 ? (
-                        <div className="border border-zinc-200 dark:border-zinc-800 rounded-2xl p-12 text-center bg-zinc-50 dark:bg-zinc-900/50">
-                            <Vote className="h-8 w-8 mx-auto mb-3 text-zinc-300 dark:text-zinc-700" strokeWidth={1.5} />
-                            <p className="text-zinc-500 text-sm font-medium">No polls yet</p>
-                            <p className="text-zinc-400 text-xs mt-1">Create a poll to vote on neighborhood decisions</p>
-                            {user && <button onClick={() => setCreatePollDialog(true)} className="mt-4 text-xs font-semibold text-zinc-900 dark:text-white underline underline-offset-2">Create first poll</button>}
+                        <div className="rounded-2xl p-12 text-center card-premium" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface-high)' }}>
+                            <Vote className="h-8 w-8 mx-auto mb-3" strokeWidth={1.5} style={{ color: 'var(--color-text-muted)' }} />
+                            <p className="text-sm font-medium" style={{ color: 'var(--color-text-muted)' }}>No polls yet</p>
+                            <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Create a poll to vote on neighborhood decisions</p>
+                            {user && <button onClick={() => setCreatePollDialog(true)} className="mt-4 text-xs font-semibold underline underline-offset-2" style={{ color: 'var(--color-primary)' }}>Create first poll</button>}
                         </div>
                     ) : (
                         <div className="space-y-4">{polls.map(poll => <PollCard key={poll.id} poll={poll} user={user} />)}</div>
@@ -621,20 +630,20 @@ export default function Community() {
             <Dialog open={createPostDialog} onOpenChange={closePostDialog}>
                 <DialogContent className="max-w-lg max-h-[92vh] overflow-y-auto p-0">
                     <DialogHeader className="px-5 pt-5 pb-0">
-                        <DialogTitle className="font-semibold text-base">New Post</DialogTitle>
+                        <DialogTitle className="font-semibold text-base" style={{ color: 'var(--color-primary)' }}>New Post</DialogTitle>
                     </DialogHeader>
                     <div className="px-5 pt-4 pb-5 space-y-4">
-                        <div ref={dropRef}
-                            onDragOver={e => { e.preventDefault(); dropRef.current?.classList.add('border-zinc-500'); }}
-                            onDragLeave={() => dropRef.current?.classList.remove('border-zinc-500')}
-                            onDrop={e => { e.preventDefault(); dropRef.current?.classList.remove('border-zinc-500'); handleImageSelect(e.dataTransfer.files[0]); }}>
+                        <div
+                            onDragOver={e => { e.preventDefault(); setDragActive(true); }}
+                            onDragLeave={() => setDragActive(false)}
+                            onDrop={e => { e.preventDefault(); setDragActive(false); handleImageSelect(e.dataTransfer.files[0]); }}>
                             {imagePreview ? (
-                                <div className="relative rounded-2xl overflow-hidden bg-zinc-100 dark:bg-zinc-800" style={{ aspectRatio: '4/3' }}>
+                                <div className="relative rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--color-surface-high)', aspectRatio: '4/3' }}>
                                     <img src={imagePreview} alt="" className="w-full h-full object-cover" />
-                                    <button onClick={clearImage} className="absolute top-2 right-2 h-7 w-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors"><X className="h-3.5 w-3.5" /></button>
+                                    <button onClick={clearImage} className="absolute top-2 right-2 h-7 w-7 rounded-full text-white flex items-center justify-center hover:opacity-80 transition-colors" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}><X className="h-3.5 w-3.5" /></button>
                                 </div>
                             ) : (
-                                <button onClick={() => fileInputRef.current?.click()} className="w-full border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-2xl flex flex-col items-center justify-center gap-2 text-zinc-400 hover:border-zinc-400 transition-all" style={{ minHeight: 100 }}>
+                                <button onClick={() => fileInputRef.current?.click()} className="w-full border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 transition-all hover:opacity-70" style={{ borderColor: dragActive ? 'var(--color-border-strong)' : 'var(--color-border)', color: 'var(--color-text-muted)', minHeight: 100 }}>
                                     <ImageIcon className="h-6 w-6" />
                                     <p className="text-xs">Add a photo (optional)</p>
                                 </button>
@@ -644,44 +653,47 @@ export default function Community() {
                         <div className="flex items-center gap-2.5">
                             <Avatar name={user?.full_name} email={user?.email} size={9} />
                             <div>
-                                <p className="text-sm font-semibold text-zinc-900 dark:text-white">{user?.full_name || user?.email?.split('@')[0] || 'You'}</p>
-                                <p className="text-[10px] text-zinc-400">Posting to Community</p>
+                                <p className="text-sm font-semibold" style={{ color: 'var(--color-primary)' }}>{user?.full_name || user?.email?.split('@')[0] || 'You'}</p>
+                                <p className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>Posting to Community</p>
                             </div>
                         </div>
                         <div className="grid grid-cols-4 gap-1.5">
                             {Object.entries(POST_TYPES).map(([k, v]) => (
                                 <button key={k} onClick={() => setPostForm(p => ({ ...p, type: k }))}
-                                    className={`py-2.5 rounded-xl border text-center transition-all ${postForm.type === k ? 'border-zinc-900 dark:border-white bg-zinc-900/5 dark:bg-white/10' : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'}`}>
-                                    <v.icon className="h-4 w-4 mx-auto mb-1 text-zinc-600 dark:text-zinc-400" />
-                                    <p className="text-[9px] font-semibold text-zinc-600 dark:text-zinc-400 leading-tight">{v.label}</p>
+                                    className={`py-2.5 rounded-xl border text-center transition-all ${postForm.type === k ? 'card-lightning-subtle' : 'hover-lift'}`}
+                                    style={postForm.type === k
+                                        ? { borderColor: 'var(--color-border-strong)', color: 'var(--color-primary)', backgroundColor: 'var(--color-accent-light)' }
+                                        : { borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}>
+                                    <v.icon className="h-4 w-4 mx-auto mb-1" />
+                                    <p className="text-[9px] font-semibold leading-tight">{v.label}</p>
                                 </button>
                             ))}
                         </div>
-                        <Input placeholder="Title (optional)" value={postForm.title} onChange={e => setPostForm(p => ({ ...p, title: e.target.value }))} className="rounded-xl" />
+                        <Input placeholder="Title (optional)" value={postForm.title} onChange={e => setPostForm(p => ({ ...p, title: e.target.value }))} className="rounded-xl input-lightning" style={{ backgroundColor: 'var(--color-surface-high)', borderColor: 'var(--color-border)' }} />
                         <div className="relative">
-                            <Textarea placeholder="Write a caption" value={postForm.body} onChange={e => setPostForm(p => ({ ...p, body: e.target.value }))} className="rounded-xl resize-none pr-12" rows={3} />
-                            <span className="absolute bottom-2.5 right-3 text-[10px] text-zinc-300 dark:text-zinc-600">{postForm.body.length}/500</span>
+                            <Textarea placeholder="Write a caption" value={postForm.body} onChange={e => setPostForm(p => ({ ...p, body: e.target.value }))} className="rounded-xl resize-none pr-12 input-lightning" rows={3} style={{ backgroundColor: 'var(--color-surface-high)', borderColor: 'var(--color-border)' }} />
+                            <span className="absolute bottom-2.5 right-3 text-[10px]" style={{ color: 'var(--color-text-muted)' }}>{postForm.body.length}/500</span>
                         </div>
                         <div className="relative">
-                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400" />
-                            <Input placeholder="Add location (optional)" value={postForm.neighborhood} onChange={e => setPostForm(p => ({ ...p, neighborhood: e.target.value }))} className="pl-8 rounded-xl" />
+                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5" style={{ color: 'var(--color-text-muted)' }} />
+                            <Input placeholder="Add location (optional)" value={postForm.neighborhood} onChange={e => setPostForm(p => ({ ...p, neighborhood: e.target.value }))} className="pl-8 rounded-xl input-lightning" style={{ backgroundColor: 'var(--color-surface-high)', borderColor: 'var(--color-border)' }} />
                         </div>
                         {postForm.type === 'job' && (
                             <div className="grid grid-cols-2 gap-3">
                                 <Select value={postForm.job_type} onValueChange={v => setPostForm(p => ({ ...p, job_type: v }))}>
-                                    <SelectTrigger className="rounded-xl"><SelectValue placeholder="Job type" /></SelectTrigger>
+                                    <SelectTrigger className="rounded-xl" style={{ backgroundColor: 'var(--color-surface-high)', borderColor: 'var(--color-border)' }}><SelectValue placeholder="Job type" /></SelectTrigger>
                                     <SelectContent>{Object.entries(JOB_TYPES).map(([k,v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
                                 </Select>
-                                <Input placeholder="Pay / Salary" value={postForm.job_salary} onChange={e => setPostForm(p => ({ ...p, job_salary: e.target.value }))} className="rounded-xl" />
+                                <Input placeholder="Pay / Salary" value={postForm.job_salary} onChange={e => setPostForm(p => ({ ...p, job_salary: e.target.value }))} className="rounded-xl input-lightning" style={{ backgroundColor: 'var(--color-surface-high)', borderColor: 'var(--color-border)' }} />
                             </div>
                         )}
                         {postForm.type === 'skill_exchange' && (
                             <div className="grid grid-cols-2 gap-3">
-                                <Input placeholder="I offer" value={postForm.skill_offer} onChange={e => setPostForm(p => ({ ...p, skill_offer: e.target.value }))} className="rounded-xl" />
-                                <Input placeholder="I want" value={postForm.skill_want} onChange={e => setPostForm(p => ({ ...p, skill_want: e.target.value }))} className="rounded-xl" />
+                                <Input placeholder="I offer" value={postForm.skill_offer} onChange={e => setPostForm(p => ({ ...p, skill_offer: e.target.value }))} className="rounded-xl input-lightning" style={{ backgroundColor: 'var(--color-surface-high)', borderColor: 'var(--color-border)' }} />
+                                <Input placeholder="I want" value={postForm.skill_want} onChange={e => setPostForm(p => ({ ...p, skill_want: e.target.value }))} className="rounded-xl input-lightning" style={{ backgroundColor: 'var(--color-surface-high)', borderColor: 'var(--color-border)' }} />
                             </div>
                         )}
-                        <Input placeholder="Contact email (optional)" value={postForm.contact_email} onChange={e => setPostForm(p => ({ ...p, contact_email: e.target.value }))} className="rounded-xl" type="email" />
+                        <Input placeholder="Contact email (optional)" value={postForm.contact_email} onChange={e => setPostForm(p => ({ ...p, contact_email: e.target.value }))} className="rounded-xl input-lightning" type="email" style={{ backgroundColor: 'var(--color-surface-high)', borderColor: 'var(--color-border)' }} />
                         <div className="flex gap-2 pt-1">
                             <Button variant="outline" className="flex-1 h-10 rounded-xl text-sm" onClick={closePostDialog}>Cancel</Button>
                             <Button className="flex-1 h-10 rounded-xl text-sm gap-2" onClick={createPost} disabled={saving || (!postForm.body && !imageFile)}>
@@ -697,32 +709,32 @@ export default function Community() {
             <Dialog open={createPollDialog} onOpenChange={setCreatePollDialog}>
                 <DialogContent className="max-w-md">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2"><BarChart2 className="h-4 w-4" /> Create a Poll</DialogTitle>
+                        <DialogTitle className="flex items-center gap-2" style={{ color: 'var(--color-primary)' }}><BarChart2 className="h-4 w-4" /> Create a Poll</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-3 pt-2">
                         <div className="flex items-center gap-2.5">
                             <Avatar name={user?.full_name} email={user?.email} size={9} />
                             <div>
-                                <p className="text-sm font-semibold text-zinc-900 dark:text-white">{user?.full_name || user?.email?.split('@')[0] || 'You'}</p>
-                                <p className="text-[10px] text-zinc-400">Neighborhood Poll</p>
+                                <p className="text-sm font-semibold" style={{ color: 'var(--color-primary)' }}>{user?.full_name || user?.email?.split('@')[0] || 'You'}</p>
+                                <p className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>Neighborhood Poll</p>
                             </div>
                         </div>
                         <Textarea placeholder="Ask a question — e.g. Should we add a dog park to Riverside?" value={pollForm.question}
-                            onChange={e => setPollForm(p => ({ ...p, question: e.target.value }))} className="rounded-xl resize-none" rows={2} />
+                            onChange={e => setPollForm(p => ({ ...p, question: e.target.value }))} className="rounded-xl resize-none input-lightning" rows={2} style={{ backgroundColor: 'var(--color-surface-high)', borderColor: 'var(--color-border)' }} />
                         <div className="relative">
-                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400" />
-                            <Input placeholder="Neighborhood (optional)" value={pollForm.neighborhood} onChange={e => setPollForm(p => ({ ...p, neighborhood: e.target.value }))} className="pl-8 rounded-xl" />
+                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5" style={{ color: 'var(--color-text-muted)' }} />
+                            <Input placeholder="Neighborhood (optional)" value={pollForm.neighborhood} onChange={e => setPollForm(p => ({ ...p, neighborhood: e.target.value }))} className="pl-8 rounded-xl input-lightning" style={{ backgroundColor: 'var(--color-surface-high)', borderColor: 'var(--color-border)' }} />
                         </div>
                         <div className="space-y-2">
-                            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Options (min 2)</p>
+                            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Options (min 2)</p>
                             {pollForm.options.map((opt, i) => (
                                 <div key={i} className="relative">
                                     <Input placeholder={i < 2 ? `Option ${i + 1} *` : `Option ${i + 1} (optional)`} value={opt}
                                         onChange={e => { const o = [...pollForm.options]; o[i] = e.target.value; setPollForm(p => ({ ...p, options: o })); }}
-                                        className="rounded-xl pr-8" />
+                                        className="rounded-xl pr-8 input-lightning" style={{ backgroundColor: 'var(--color-surface-high)', borderColor: 'var(--color-border)' }} />
                                     {opt && i >= 2 && (
                                         <button onClick={() => { const o = pollForm.options.map((x,j) => j === i ? '' : x); setPollForm(p => ({ ...p, options: o })); }}
-                                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600">
+                                            className="absolute right-2.5 top-1/2 -translate-y-1/2 transition-colors hover:opacity-70" style={{ color: 'var(--color-text-muted)' }}>
                                             <X className="h-3.5 w-3.5" />
                                         </button>
                                     )}

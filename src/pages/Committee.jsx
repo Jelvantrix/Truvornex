@@ -1,16 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-    Users, Plus, PiggyBank, Trophy, Calendar, Clock,
-    CheckCircle, XCircle, Loader2, ChevronRight, Crown,
-    TrendingUp, AlertCircle, X, Info, Star, BarChart3
+    Users, Plus, PiggyBank, Trophy,
+    CheckCircle, Loader2, Crown,
+    TrendingUp, X, Info, BarChart3
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const STATUS_CONFIG = {
-    recruiting: { label: 'Recruiting', color: '#93c5fd', bg: 'rgba(147,197,253,0.08)' },
-    active: { label: 'Active', color: '#6ee7b7', bg: 'rgba(110,231,183,0.08)' },
-    completed: { label: 'Completed', color: '#888', bg: 'rgba(136,136,136,0.08)' },
-    cancelled: { label: 'Cancelled', color: '#fca5a5', bg: 'rgba(252,165,165,0.08)' },
+    recruiting: { label: 'Recruiting', color: 'var(--color-info)', bg: 'var(--color-info-bg)' },
+    active: { label: 'Active', color: 'var(--color-success)', bg: 'var(--color-success-bg)' },
+    completed: { label: 'Completed', color: 'var(--color-text-subtle)', bg: 'var(--color-surface-high)' },
+    cancelled: { label: 'Cancelled', color: 'var(--color-error)', bg: 'var(--color-error-bg)' },
 };
 
 const ROUND_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -28,14 +28,13 @@ function CommitteeCard({ committee, isMember, isOrganizer, onOpen }) {
 
     return (
         <button onClick={() => onOpen(committee)}
-            className="w-full rounded-2xl p-5 text-left transition-all hover:scale-[1.005]"
-            style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+            className="card-premium rounded-2xl p-5 shimmer hover-lift w-full text-left block">
             <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                        <PiggyBank className="h-4 w-4 shrink-0" style={{ color: '#fcd34d' }} />
+                        <PiggyBank className="h-4 w-4 shrink-0" style={{ color: 'var(--color-warning)' }} />
                         <h3 className="font-bold text-sm truncate" style={{ color: 'var(--color-text)' }}>{committee.name}</h3>
-                        {isOrganizer && <Crown className="h-3 w-3 shrink-0" style={{ color: '#fcd34d' }} />}
+                        {isOrganizer && <Crown className="h-3 w-3 shrink-0" style={{ color: 'var(--color-warning)' }} />}
                     </div>
                     {committee.description && (
                         <p className="text-xs line-clamp-2" style={{ color: 'var(--color-text-subtle)' }}>{committee.description}</p>
@@ -57,13 +56,13 @@ function CommitteeCard({ committee, isMember, isOrganizer, onOpen }) {
                     <p className="text-[9px] uppercase tracking-wide" style={{ color: 'var(--color-text-subtle)' }}>per month</p>
                 </div>
                 <div className="rounded-xl p-2 text-center" style={{ backgroundColor: 'var(--color-surface-high)' }}>
-                    <p className="font-black text-base" style={{ color: '#fcd34d' }}>
+                    <p className="font-black text-base" style={{ color: 'var(--color-warning)' }}>
                         {committee.member_count || 0}/{committee.member_limit}
                     </p>
                     <p className="text-[9px] uppercase tracking-wide" style={{ color: 'var(--color-text-subtle)' }}>members</p>
                 </div>
                 <div className="rounded-xl p-2 text-center" style={{ backgroundColor: 'var(--color-surface-high)' }}>
-                    <p className="font-black text-base" style={{ color: '#6ee7b7' }}>
+                    <p className="font-black text-base" style={{ color: 'var(--color-success)' }}>
                         {parseFloat(committee.monthly_amount_pkr * (committee.member_limit || 1)).toLocaleString()}
                     </p>
                     <p className="text-[9px] uppercase tracking-wide" style={{ color: 'var(--color-text-subtle)' }}>monthly pot</p>
@@ -76,7 +75,7 @@ function CommitteeCard({ committee, isMember, isOrganizer, onOpen }) {
                     <span>{progress}%</span>
                 </div>
                 <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--color-surface-high)' }}>
-                    <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, backgroundColor: progress === 100 ? '#6ee7b7' : '#fcd34d' }} />
+                    <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, backgroundColor: progress === 100 ? 'var(--color-success)' : 'var(--color-warning)' }} />
                 </div>
             </div>
 
@@ -88,7 +87,7 @@ function CommitteeCard({ committee, isMember, isOrganizer, onOpen }) {
                 </div>
                 {isMember && (
                     <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                        style={{ backgroundColor: 'rgba(110,231,183,0.1)', color: '#6ee7b7' }}>
+                        style={{ backgroundColor: 'var(--color-success-bg)', color: 'var(--color-success)' }}>
                         ✓ Member
                     </span>
                 )}
@@ -229,13 +228,19 @@ export default function CommitteePage() {
         .filter(c => c.status === 'active')
         .reduce((s, c) => s + parseFloat(c.monthly_amount_pkr) * parseInt(c.member_limit || 1), 0);
 
+    const myStats = [
+        { icon: Users, label: 'Active Groups', value: myCommittees.filter(c => c.status === 'active').length, tint: 'var(--color-primary)' },
+        { icon: PiggyBank, label: 'Monthly Commitment', value: `PKR ${myCommittees.filter(c => c.status === 'active').reduce((s, c) => s + parseFloat(c.monthly_amount_pkr), 0).toLocaleString()}`, tint: 'var(--color-warning)' },
+        { icon: TrendingUp, label: 'Total Monthly Pots', value: `PKR ${totalMonthlyPot.toLocaleString()}`, tint: 'var(--color-success)' },
+    ];
+
     return (
         <div style={{ maxWidth: 800, margin: '0 auto' }}>
             {/* Header */}
             <div className="flex items-center justify-between mb-5">
                 <div>
                     <h1 className="font-display font-bold text-2xl tracking-tight flex items-center gap-2" style={{ color: 'var(--color-text)' }}>
-                        <PiggyBank className="h-6 w-6" style={{ color: '#fcd34d' }} />
+                        <PiggyBank className="h-6 w-6" style={{ color: 'var(--color-warning)' }} />
                         Committee
                     </h1>
                     <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-subtle)' }}>
@@ -244,7 +249,7 @@ export default function CommitteePage() {
                 </div>
                 {user && (
                     <button onClick={() => setCreateOpen(true)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold"
+                        className="btn-lightning flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold"
                         style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)' }}>
                         <Plus className="h-3.5 w-3.5" /> Create Committee
                     </button>
@@ -253,32 +258,29 @@ export default function CommitteePage() {
 
             {/* My Stats */}
             {user && myCommittees.length > 0 && (
-                <div className="grid grid-cols-3 gap-3 mb-5">
-                    <div className="rounded-2xl p-4" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
-                        <p className="text-xs tracking-widest uppercase mb-1" style={{ color: 'var(--color-text-subtle)' }}>Active Groups</p>
-                        <p className="font-black text-2xl" style={{ color: 'var(--color-primary)' }}>{myCommittees.filter(c => c.status === 'active').length}</p>
-                    </div>
-                    <div className="rounded-2xl p-4" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
-                        <p className="text-xs tracking-widest uppercase mb-1" style={{ color: 'var(--color-text-subtle)' }}>Monthly Commitment</p>
-                        <p className="font-black text-lg" style={{ color: '#fcd34d' }}>
-                            PKR {myCommittees.filter(c => c.status === 'active').reduce((s, c) => s + parseFloat(c.monthly_amount_pkr), 0).toLocaleString()}
-                        </p>
-                    </div>
-                    <div className="rounded-2xl p-4" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
-                        <p className="text-xs tracking-widest uppercase mb-1" style={{ color: 'var(--color-text-subtle)' }}>Total Monthly Pots</p>
-                        <p className="font-black text-lg" style={{ color: '#6ee7b7' }}>PKR {totalMonthlyPot.toLocaleString()}</p>
-                    </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+                    {myStats.map((s, i) => (
+                        <div key={i} className="rounded-2xl p-5 shimmer"
+                            style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                            <div className="h-10 w-10 rounded-xl flex items-center justify-center card-lightning-subtle mb-3"
+                                style={{ backgroundColor: 'rgba(var(--color-primary),0.12)' }}>
+                                <s.icon className="h-5 w-5" style={{ color: s.tint }} />
+                            </div>
+                            <p className="font-black text-2xl" style={{ color: s.tint }}>{s.value}</p>
+                            <p className="text-[10px] mt-1" style={{ color: 'var(--color-text-muted)' }}>{s.label}</p>
+                        </div>
+                    ))}
                 </div>
             )}
 
             {/* Info Banner */}
-            <div className="rounded-2xl p-4 mb-5 flex items-start gap-3"
-                style={{ backgroundColor: 'rgba(252,211,77,0.05)', border: '1px solid rgba(252,211,77,0.15)' }}>
-                <Info className="h-4 w-4 shrink-0 mt-0.5" style={{ color: '#fcd34d' }} />
+            <div className="card-premium rounded-2xl p-4 mb-5 flex items-start gap-3 shimmer"
+                style={{ backgroundColor: 'var(--color-warning-bg)', border: '1px solid var(--color-border)' }}>
+                <Info className="h-4 w-4 shrink-0 mt-0.5" style={{ color: 'var(--color-warning)' }} />
                 <div>
-                    <p className="text-xs font-semibold mb-0.5" style={{ color: '#fcd34d' }}>How Committee (Chit Fund) Works</p>
+                    <p className="text-xs font-semibold mb-0.5" style={{ color: 'var(--color-warning)' }}>How Committee (Chit Fund) Works</p>
                     <p className="text-[11px] leading-relaxed" style={{ color: 'var(--color-text-subtle)' }}>
-                        A group of neighbors each contribute a fixed amount monthly. Every month, one member receives the full pot. 
+                        A group of neighbors each contribute a fixed amount monthly. Every month, one member receives the full pot.
                         Over N months, everyone gets their turn once — guaranteed savings without a bank!
                     </p>
                 </div>
@@ -331,8 +333,7 @@ export default function CommitteePage() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
                     style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
                     onClick={e => e.target === e.currentTarget && setSelected(null)}>
-                    <div className="rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
-                        style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+                    <div className="card-premium rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
                         <div className="p-5">
                             <div className="flex items-start justify-between mb-4">
                                 <div>
@@ -351,10 +352,10 @@ export default function CommitteePage() {
                                     {/* Stats */}
                                     <div className="grid grid-cols-4 gap-2 mb-4">
                                         {[
-                                            { label: 'Monthly', value: fmtPKR(detailData.committee.monthly_amount_pkr), color: '#fcd34d' },
-                                            { label: 'Members', value: `${detailData.members?.length || 0}/${detailData.committee.member_limit}`, color: '#93c5fd' },
-                                            { label: 'Round', value: `${detailData.committee.current_round || 0}/${detailData.committee.total_rounds}`, color: '#6ee7b7' },
-                                            { label: 'Pot', value: `PKR ${(parseFloat(detailData.committee.monthly_amount_pkr) * parseInt(detailData.committee.member_limit)).toLocaleString()}`, color: '#f97316' },
+                                            { label: 'Monthly', value: fmtPKR(detailData.committee.monthly_amount_pkr), color: 'var(--color-warning)' },
+                                            { label: 'Members', value: `${detailData.members?.length || 0}/${detailData.committee.member_limit}`, color: 'var(--color-info)' },
+                                            { label: 'Round', value: `${detailData.committee.current_round || 0}/${detailData.committee.total_rounds}`, color: 'var(--color-success)' },
+                                            { label: 'Pot', value: `PKR ${(parseFloat(detailData.committee.monthly_amount_pkr) * parseInt(detailData.committee.member_limit)).toLocaleString()}`, color: 'var(--color-warning)' },
                                         ].map(s => (
                                             <div key={s.label} className="rounded-xl p-2.5 text-center" style={{ backgroundColor: 'var(--color-surface-high)' }}>
                                                 <p className="text-[10px] tracking-wide uppercase" style={{ color: 'var(--color-text-subtle)' }}>{s.label}</p>
@@ -365,12 +366,12 @@ export default function CommitteePage() {
 
                                     {/* Status-specific actions */}
                                     {detailData.committee.status === 'recruiting' && (
-                                        <div className="rounded-2xl p-4 mb-4"
-                                            style={{ backgroundColor: 'rgba(147,197,253,0.06)', border: '1px solid rgba(147,197,253,0.15)' }}>
-                                            <p className="text-xs font-semibold mb-2" style={{ color: '#93c5fd' }}>Recruiting Members</p>
+                                        <div className="card-premium rounded-2xl p-4 mb-4 shimmer"
+                                            style={{ backgroundColor: 'var(--color-info-bg)', border: '1px solid var(--color-border)' }}>
+                                            <p className="text-xs font-semibold mb-2" style={{ color: 'var(--color-info)' }}>Recruiting Members</p>
                                             <div className="h-2 rounded-full overflow-hidden mb-2" style={{ backgroundColor: 'var(--color-surface-high)' }}>
                                                 <div className="h-full rounded-full"
-                                                    style={{ width: `${Math.min(100, (detailData.members?.length / detailData.committee.member_limit) * 100)}%`, backgroundColor: '#93c5fd' }} />
+                                                    style={{ width: `${Math.min(100, (detailData.members?.length / detailData.committee.member_limit) * 100)}%`, backgroundColor: 'var(--color-info)' }} />
                                             </div>
                                             <p className="text-[10px]" style={{ color: 'var(--color-text-subtle)' }}>
                                                 {detailData.members?.length || 0} of {detailData.committee.member_limit} spots filled
@@ -378,7 +379,7 @@ export default function CommitteePage() {
                                             <div className="flex gap-2 mt-3">
                                                 {!isMember(selected) && user && (
                                                     <button onClick={() => joinCommittee(selected.id)} disabled={joiningId === selected.id}
-                                                        className="flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-opacity"
+                                                        className="btn-lightning flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-opacity"
                                                         style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)', opacity: joiningId === selected.id ? 0.6 : 1 }}>
                                                         {joiningId === selected.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
                                                         Join Committee
@@ -386,8 +387,8 @@ export default function CommitteePage() {
                                                 )}
                                                 {isOrganizer(selected) && (detailData.members?.length || 0) >= 2 && (
                                                     <button onClick={activateCommittee} disabled={activating}
-                                                        className="flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-opacity"
-                                                        style={{ backgroundColor: '#6ee7b7', color: '#080808', opacity: activating ? 0.6 : 1 }}>
+                                                        className="btn-lightning flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-opacity"
+                                                        style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)', opacity: activating ? 0.6 : 1 }}>
                                                         {activating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle className="h-3.5 w-3.5" />}
                                                         Start Committee
                                                     </button>
@@ -397,10 +398,10 @@ export default function CommitteePage() {
                                     )}
 
                                     {detailData.committee.status === 'active' && (
-                                        <div className="rounded-2xl p-4 mb-4"
-                                            style={{ backgroundColor: 'rgba(110,231,183,0.06)', border: '1px solid rgba(110,231,183,0.15)' }}>
+                                        <div className="card-premium rounded-2xl p-4 mb-4 shimmer"
+                                            style={{ backgroundColor: 'var(--color-success-bg)', border: '1px solid var(--color-border)' }}>
                                             <div className="flex items-center justify-between mb-2">
-                                                <p className="text-xs font-semibold" style={{ color: '#6ee7b7' }}>
+                                                <p className="text-xs font-semibold" style={{ color: 'var(--color-success)' }}>
                                                     Round {detailData.committee.current_round} of {detailData.committee.total_rounds}
                                                 </p>
                                                 {detailData.committee.next_payout_at && (
@@ -411,7 +412,7 @@ export default function CommitteePage() {
                                             </div>
                                             {isMember(selected) && user && (
                                                 <button onClick={markContribution} disabled={contributing}
-                                                    className="w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-opacity"
+                                                    className="btn-lightning w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-opacity"
                                                     style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)', opacity: contributing ? 0.6 : 1 }}>
                                                     {contributing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle className="h-3.5 w-3.5" />}
                                                     Record My Contribution — {fmtPKR(detailData.committee.monthly_amount_pkr)}
@@ -423,7 +424,7 @@ export default function CommitteePage() {
                                     {/* Payout Schedule */}
                                     <div className="mb-4">
                                         <h3 className="text-xs font-bold mb-2 flex items-center gap-1.5" style={{ color: 'var(--color-text)' }}>
-                                            <Trophy className="h-3.5 w-3.5" style={{ color: '#fcd34d' }} />
+                                            <Trophy className="h-3.5 w-3.5" style={{ color: 'var(--color-warning)' }} />
                                             Payout Schedule
                                         </h3>
                                         <div className="space-y-1.5">
@@ -433,13 +434,13 @@ export default function CommitteePage() {
                                                 const isPastRound = round < (detailData.committee.current_round || 1);
                                                 const isMe = member.user_id === user?.id;
                                                 return (
-                                                    <div key={member.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
+                                                    <div key={member.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl card-lightning-subtle"
                                                         style={{
-                                                            backgroundColor: isCurrentRound ? 'rgba(252,211,77,0.08)' : isMe ? 'rgba(110,231,183,0.05)' : 'var(--color-surface-high)',
-                                                            border: `1px solid ${isCurrentRound ? 'rgba(252,211,77,0.2)' : 'transparent'}`,
+                                                            backgroundColor: isCurrentRound ? 'var(--color-warning-bg)' : isMe ? 'var(--color-success-bg)' : 'var(--color-surface-high)',
+                                                            border: `1px solid ${isCurrentRound ? 'var(--color-border)' : 'transparent'}`,
                                                         }}>
                                                         <div className="h-7 w-7 rounded-full flex items-center justify-center text-xs font-black shrink-0"
-                                                            style={{ backgroundColor: isPastRound ? '#6ee7b720' : isCurrentRound ? '#fcd34d20' : 'var(--color-surface)', color: isPastRound ? '#6ee7b7' : isCurrentRound ? '#fcd34d' : 'var(--color-text-subtle)' }}>
+                                                            style={{ backgroundColor: isPastRound ? 'var(--color-success-bg)' : isCurrentRound ? 'var(--color-warning-bg)' : 'var(--color-surface)', color: isPastRound ? 'var(--color-success)' : isCurrentRound ? 'var(--color-warning)' : 'var(--color-text-subtle)' }}>
                                                             {round}
                                                         </div>
                                                         <div className="flex-1 min-w-0">
@@ -452,12 +453,12 @@ export default function CommitteePage() {
                                                         </div>
                                                         <div className="shrink-0 flex items-center gap-1.5">
                                                             {isPastRound && member.has_received_payout && (
-                                                                <CheckCircle className="h-3.5 w-3.5" style={{ color: '#6ee7b7' }} />
+                                                                <CheckCircle className="h-3.5 w-3.5" style={{ color: 'var(--color-success)' }} />
                                                             )}
                                                             {isCurrentRound && (
-                                                                <Trophy className="h-3.5 w-3.5" style={{ color: '#fcd34d' }} />
+                                                                <Trophy className="h-3.5 w-3.5" style={{ color: 'var(--color-warning)' }} />
                                                             )}
-                                                            <p className="text-xs font-bold" style={{ color: isCurrentRound ? '#fcd34d' : 'var(--color-text-subtle)' }}>
+                                                            <p className="text-xs font-bold" style={{ color: isCurrentRound ? 'var(--color-warning)' : 'var(--color-text-subtle)' }}>
                                                                 {fmtPKR(detailData.committee.monthly_amount_pkr * (detailData.committee.member_limit || 1))}
                                                             </p>
                                                         </div>
@@ -471,18 +472,18 @@ export default function CommitteePage() {
                                     {detailData.contributions?.length > 0 && (
                                         <div>
                                             <h3 className="text-xs font-bold mb-2 flex items-center gap-1.5" style={{ color: 'var(--color-text)' }}>
-                                                <BarChart3 className="h-3.5 w-3.5" style={{ color: '#93c5fd' }} />
+                                                <BarChart3 className="h-3.5 w-3.5" style={{ color: 'var(--color-info)' }} />
                                                 Recent Contributions
                                             </h3>
                                             <div className="space-y-1.5">
                                                 {detailData.contributions.slice(0, 6).map(c => (
-                                                    <div key={c.id} className="flex items-center justify-between px-3 py-2 rounded-xl"
+                                                    <div key={c.id} className="flex items-center justify-between px-3 py-2 rounded-xl card-lightning-subtle"
                                                         style={{ backgroundColor: 'var(--color-surface-high)' }}>
                                                         <div>
                                                             <p className="text-xs font-semibold" style={{ color: 'var(--color-text)' }}>{c.member_name || 'Member'}</p>
                                                             <p className="text-[10px]" style={{ color: 'var(--color-text-subtle)' }}>Round {c.round_number} · {new Date(c.paid_at).toLocaleDateString()}</p>
                                                         </div>
-                                                        <p className="text-sm font-bold" style={{ color: '#6ee7b7' }}>+{fmtPKR(c.amount_pkr)}</p>
+                                                        <p className="text-sm font-bold" style={{ color: 'var(--color-success)' }}>+{fmtPKR(c.amount_pkr)}</p>
                                                     </div>
                                                 ))}
                                             </div>
@@ -500,8 +501,7 @@ export default function CommitteePage() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
                     style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
                     onClick={e => e.target === e.currentTarget && setCreateOpen(false)}>
-                    <div className="rounded-2xl p-5 w-full max-w-md shadow-2xl overflow-y-auto max-h-[90vh]"
-                        style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+                    <div className="card-premium rounded-2xl p-5 w-full max-w-md shadow-2xl overflow-y-auto max-h-[90vh]">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="font-bold text-base" style={{ color: 'var(--color-text)' }}>Create Committee</h2>
                             <button onClick={() => setCreateOpen(false)} style={{ color: 'var(--color-text-subtle)' }}><X className="h-4 w-4" /></button>
@@ -511,21 +511,21 @@ export default function CommitteePage() {
                                 <label className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--color-text-subtle)' }}>Committee Name *</label>
                                 <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                                     placeholder="e.g. DHA Phase 5 Block B Committee"
-                                    className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+                                    className="input-lightning w-full px-4 py-3.5 rounded-xl text-sm outline-none"
                                     style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }} />
                             </div>
                             <div>
                                 <label className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--color-text-subtle)' }}>Description</label>
                                 <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                                     placeholder="Who can join, purpose, any rules…" rows={2}
-                                    className="w-full px-3 py-2.5 rounded-xl text-sm outline-none resize-none"
+                                    className="input-lightning w-full px-4 py-3.5 rounded-xl text-sm outline-none resize-none"
                                     style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }} />
                             </div>
                             <div>
                                 <label className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--color-text-subtle)' }}>Monthly Contribution per Member (PKR) *</label>
                                 <input type="number" min={100} value={form.monthly_amount_pkr} onChange={e => setForm(f => ({ ...f, monthly_amount_pkr: e.target.value }))}
                                     placeholder="e.g. 5000"
-                                    className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+                                    className="input-lightning w-full px-4 py-3.5 rounded-xl text-sm outline-none"
                                     style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }} />
                                 {form.monthly_amount_pkr && form.member_limit && (
                                     <p className="text-[10px] mt-1" style={{ color: 'var(--color-success)' }}>
@@ -537,7 +537,7 @@ export default function CommitteePage() {
                                 <div>
                                     <label className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--color-text-subtle)' }}>Max Members</label>
                                     <select value={form.member_limit} onChange={e => setForm(f => ({ ...f, member_limit: parseInt(e.target.value), total_rounds: parseInt(e.target.value) }))}
-                                        className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+                                        className="input-lightning w-full px-4 py-3.5 rounded-xl text-sm outline-none"
                                         style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}>
                                         {[5, 6, 8, 10, 12, 15, 20, 24].map(n => <option key={n} value={n}>{n} members</option>)}
                                     </select>
@@ -545,7 +545,7 @@ export default function CommitteePage() {
                                 <div>
                                     <label className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--color-text-subtle)' }}>Payout Day of Month</label>
                                     <select value={form.payout_day} onChange={e => setForm(f => ({ ...f, payout_day: parseInt(e.target.value) }))}
-                                        className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+                                        className="input-lightning w-full px-4 py-3.5 rounded-xl text-sm outline-none"
                                         style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}>
                                         {[1, 5, 10, 15, 20, 25, 28].map(n => <option key={n} value={n}>{n}th</option>)}
                                     </select>
@@ -553,23 +553,24 @@ export default function CommitteePage() {
                             </div>
 
                             {form.monthly_amount_pkr && form.member_limit && (
-                                <div className="rounded-xl p-3" style={{ backgroundColor: 'rgba(252,211,77,0.06)', border: '1px solid rgba(252,211,77,0.12)' }}>
-                                    <p className="text-[11px] font-semibold mb-1" style={{ color: '#fcd34d' }}>Summary</p>
+                                <div className="card-premium rounded-xl p-3 shimmer"
+                                    style={{ backgroundColor: 'var(--color-warning-bg)', border: '1px solid var(--color-border)' }}>
+                                    <p className="text-[11px] font-semibold mb-1" style={{ color: 'var(--color-warning)' }}>Summary</p>
                                     <p className="text-[11px]" style={{ color: 'var(--color-text-subtle)' }}>
-                                        {form.member_limit} members × PKR {parseFloat(form.monthly_amount_pkr).toLocaleString()}/month = 
-                                        <strong style={{ color: '#fcd34d' }}> PKR {(parseFloat(form.monthly_amount_pkr) * parseInt(form.member_limit)).toLocaleString()}</strong> monthly pot.
+                                        {form.member_limit} members × PKR {parseFloat(form.monthly_amount_pkr).toLocaleString()}/month =
+                                        <strong style={{ color: 'var(--color-warning)' }}> PKR {(parseFloat(form.monthly_amount_pkr) * parseInt(form.member_limit)).toLocaleString()}</strong> monthly pot.
                                         Each member waits their turn (max {form.member_limit} months) to receive the full amount.
                                     </p>
                                 </div>
                             )}
                         </div>
                         <div className="flex gap-2 mt-5">
-                            <button onClick={() => setCreateOpen(false)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold"
+                            <button onClick={() => setCreateOpen(false)} className="btn-lightning-subtle flex-1 py-2.5 rounded-xl text-sm font-semibold"
                                 style={{ backgroundColor: 'var(--color-surface-high)', color: 'var(--color-text-muted)', border: '1px solid var(--color-border)' }}>
                                 Cancel
                             </button>
                             <button onClick={createCommittee} disabled={saving || !form.name || !form.monthly_amount_pkr}
-                                className="flex-1 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-opacity"
+                                className="btn-lightning flex-1 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-opacity"
                                 style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)', opacity: (saving || !form.name || !form.monthly_amount_pkr) ? 0.5 : 1 }}>
                                 {saving ? <><Loader2 className="h-4 w-4 animate-spin" /> Creating…</> : 'Create Committee'}
                             </button>

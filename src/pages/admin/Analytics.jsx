@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import { TrendingUp, Users, DollarSign, CalendarCheck, Star, ArrowUpRight, ArrowDownRight, RefreshCw, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 const useChartColors = () => ({
     accent:  getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim() || '#7c6fcd',
@@ -23,29 +24,29 @@ const useChartColors = () => ({
 });
 
 const STATUS_COLORS = {
-    completed: '#22c55e', cancelled: '#ef4444', pending: '#f59e0b',
-    confirmed: '#3b82f6', in_progress: '#7c6fcd', no_show: '#6b7280',
+    completed: 'var(--color-success)', cancelled: 'var(--color-error)', pending: 'var(--color-warning)',
+    confirmed: 'var(--color-info)', in_progress: 'var(--color-accent)', no_show: 'var(--color-text-subtle)',
 };
 
 function KPI({ label, value, sub, icon: Icon, trend, color }) {
     const up = trend > 0;
     return (
-        <div className="card-premium p-5">
+        <div className="rounded-2xl p-5 shimmer hover-lift" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
             <div className="flex items-start justify-between mb-3">
-                <div className="h-10 w-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'var(--color-surface-high)' }}>
-                    <Icon className="h-5 w-5" style={{ color: 'var(--color-accent)' }} />
+                <div className="h-10 w-10 rounded-xl flex items-center justify-center card-lightning-subtle" style={{ backgroundColor: 'rgba(var(--color-primary),0.12)' }}>
+                    <Icon className="h-5 w-5" style={{ color: 'var(--color-primary)' }} />
                 </div>
                 {trend != null && (
-                    <div className={`flex items-center gap-1 text-xs font-semibold`}
+                    <div className="flex items-center gap-1 text-xs font-semibold"
                         style={{ color: up ? 'var(--color-success)' : 'var(--color-error)' }}>
                         {up ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
                         {Math.abs(trend)}%
                     </div>
                 )}
             </div>
-            <p className="text-2xl font-black" style={{ color: color || 'var(--color-text)' }}>{value}</p>
-            <p className="text-sm font-medium mt-0.5" style={{ color: 'var(--color-text-muted)' }}>{label}</p>
-            {sub && <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-subtle)' }}>{sub}</p>}
+            <p className="font-black text-2xl" style={{ color: color || 'var(--color-primary)' }}>{value}</p>
+            <p className="text-[10px] mt-1" style={{ color: 'var(--color-text-muted)' }}>{label}</p>
+            {sub && <p className="text-[10px] mt-0.5" style={{ color: 'var(--color-text-subtle)' }}>{sub}</p>}
         </div>
     );
 }
@@ -68,23 +69,30 @@ export default function Analytics() {
 
     const load = async () => {
         setLoading(true);
-        const [{ data: b }, { data: p }, { data: r }, { data: s }] = await Promise.all([
-            supabase.from('bookings').select('*'),
-            supabase.from('providers').select('*'),
-            supabase.from('reviews').select('*'),
-            supabase.from('services').select('*'),
-        ]);
-        const bookings = b || [], providers = p || [], reviews = r || [], services = s || [];
-        const kpis = computePlatformKPIs({ bookings, providers, reviews });
-        const monthly = computeMonthlyRevenue(bookings);
-        const byDay = computeBookingsByDayOfWeek(bookings);
-        const topProviders = computeTopProviders(bookings, providers, 10);
-        const statusDist = computeStatusDistribution(bookings);
-        const byCategory = computeRevenueByCategory(bookings, services);
-        const retention = computeCustomerRetention(bookings);
-        const forecast = forecastNextMonthRevenue(monthly);
-        setData({ kpis, monthly, byDay, topProviders, statusDist, byCategory, retention, forecast });
-        setLoading(false);
+        try {
+            const [{ data: b }, { data: p }, { data: r }, { data: s }] = await Promise.all([
+                supabase.from('bookings').select('*'),
+                supabase.from('providers').select('*'),
+                supabase.from('reviews').select('*'),
+                supabase.from('services').select('*'),
+            ]);
+            const bookings = b || [], providers = p || [], reviews = r || [], services = s || [];
+            const kpis = computePlatformKPIs({ bookings, providers, reviews });
+            const monthly = computeMonthlyRevenue(bookings);
+            const byDay = computeBookingsByDayOfWeek(bookings);
+            const topProviders = computeTopProviders(bookings, providers, 10);
+            const statusDist = computeStatusDistribution(bookings);
+            const byCategory = computeRevenueByCategory(bookings, services);
+            const retention = computeCustomerRetention(bookings);
+            const forecast = forecastNextMonthRevenue(monthly);
+            setData({ kpis, monthly, byDay, topProviders, statusDist, byCategory, retention, forecast });
+            toast.success('Analytics refreshed');
+        } catch (err) {
+            console.error('Failed to load analytics:', err);
+            toast.error('Failed to load analytics');
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => { load(); }, []);
@@ -92,7 +100,7 @@ export default function Analytics() {
     if (loading) return (
         <div className="space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {Array.from({ length: 8 }).map((_, i) => <div key={i} className="card-premium skeleton-wave h-28" />)}
+                {Array.from({ length: 8 }).map((_, i) => <div key={i} className="rounded-2xl p-5 shimmer" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }} />)}
             </div>
         </div>
     );
@@ -139,7 +147,7 @@ export default function Analytics() {
                         {forecast && <KPI label="Revenue Forecast" value={`$${forecast.toLocaleString()}`} sub="next month (linear)" icon={Zap} color="var(--color-info)" />}
                     </div>
 
-                    <div className="card-premium p-6">
+                    <div className="rounded-2xl p-6 shimmer hover-lift" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
                         <h2 className="font-bold text-base mb-4" style={{ color: 'var(--color-text)' }}>Monthly Revenue Trend</h2>
                         <ResponsiveContainer width="100%" height={240}>
                             <AreaChart data={monthly}>
@@ -159,7 +167,7 @@ export default function Analytics() {
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-4">
-                        <div className="card-premium p-6">
+                        <div className="rounded-2xl p-6 shimmer hover-lift" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
                             <h2 className="font-bold text-base mb-4" style={{ color: 'var(--color-text)' }}>Booking Status Distribution</h2>
                             <ResponsiveContainer width="100%" height={200}>
                                 <PieChart>
@@ -173,7 +181,7 @@ export default function Analytics() {
                                 </PieChart>
                             </ResponsiveContainer>
                         </div>
-                        <div className="card-premium p-6">
+                        <div className="rounded-2xl p-6 shimmer hover-lift" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
                             <h2 className="font-bold text-base mb-4" style={{ color: 'var(--color-text)' }}>Bookings by Day of Week</h2>
                             <ResponsiveContainer width="100%" height={200}>
                                 <BarChart data={byDay}>
@@ -191,7 +199,7 @@ export default function Analytics() {
 
             {tab === 'revenue' && (
                 <div className="space-y-6">
-                    <div className="card-premium p-6">
+                    <div className="rounded-2xl p-6 shimmer hover-lift" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
                         <h2 className="font-bold text-base mb-4" style={{ color: 'var(--color-text)' }}>Revenue by Category</h2>
                         <ResponsiveContainer width="100%" height={280}>
                             <BarChart data={byCategory} layout="vertical">
@@ -203,7 +211,7 @@ export default function Analytics() {
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
-                    <div className="card-premium p-6">
+                    <div className="rounded-2xl p-6 shimmer hover-lift" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
                         <h2 className="font-bold text-base mb-4" style={{ color: 'var(--color-text)' }}>Monthly Bookings Volume</h2>
                         <ResponsiveContainer width="100%" height={220}>
                             <LineChart data={monthly}>
@@ -222,7 +230,7 @@ export default function Analytics() {
                 <div className="space-y-4">
                     <h2 className="font-bold text-base" style={{ color: 'var(--color-text)' }}>Top Providers by Revenue</h2>
                     {topProviders.map((item, i) => item.provider && (
-                        <div key={i} className="card-premium p-4 flex items-center gap-4">
+                        <div key={i} className="rounded-2xl p-4 shimmer hover-lift flex items-center gap-4" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
                             <span className="text-2xl font-black w-8 shrink-0" style={{ color: 'var(--color-border-strong)' }}>{i + 1}</span>
                             <div className="h-10 w-10 rounded-xl overflow-hidden shrink-0 flex items-center justify-center"
                                 style={{ backgroundColor: 'var(--color-surface-high)' }}>
@@ -248,14 +256,14 @@ export default function Analytics() {
                         </div>
                     ))}
                     {topProviders.length === 0 && (
-                        <div className="text-center py-12" style={{ color: 'var(--color-text-subtle)' }}>No provider data available yet.</div>
+                        <div className="text-center py-12 rounded-2xl" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text-subtle)' }}>No provider data available yet.</div>
                     )}
                 </div>
             )}
 
             {tab === 'customers' && (
                 <div className="space-y-6">
-                    <div className="card-premium p-6">
+                    <div className="rounded-2xl p-6 shimmer hover-lift" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
                         <h2 className="font-bold text-base mb-4" style={{ color: 'var(--color-text)' }}>New vs Returning Customers</h2>
                         <ResponsiveContainer width="100%" height={260}>
                             <BarChart data={retention}>
@@ -280,14 +288,14 @@ export default function Analytics() {
                             { label: 'In Progress', value: kpis.confirmedBookings, sub: 'confirmed bookings', color: 'var(--color-info)' },
                             { label: 'Providers Pending', value: kpis.pendingProviders, sub: 'await approval', color: 'var(--color-error)' },
                         ].map(k => (
-                            <div key={k.label} className="card-premium p-5">
+                            <div key={k.label} className="rounded-2xl p-5 shimmer hover-lift" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
                                 <p className="text-xs font-semibold uppercase mb-2" style={{ color: 'var(--color-text-subtle)' }}>{k.label}</p>
                                 <p className="text-3xl font-black" style={{ color: k.color }}>{k.value}</p>
                                 <p className="text-sm" style={{ color: 'var(--color-text-subtle)' }}>{k.sub}</p>
                             </div>
                         ))}
                     </div>
-                    <div className="card-premium p-6">
+                    <div className="rounded-2xl p-6 shimmer hover-lift" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
                         <h2 className="font-bold text-base mb-4" style={{ color: 'var(--color-text)' }}>Booking Volume by Day of Week</h2>
                         <ResponsiveContainer width="100%" height={220}>
                             <BarChart data={byDay}>

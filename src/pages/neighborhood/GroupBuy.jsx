@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Layers, Users, Clock, Plus, Check, Loader2, ShoppingCart, X, TrendingDown, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/api/supabaseClient';
@@ -21,6 +21,20 @@ function countdown(expiresAt) {
     if (d > 0) return `${d}d ${h}h left`;
     if (h > 0) return `${h}h ${m}m left`;
     return `${m}m left`;
+}
+
+function KpiCard({ icon: Icon, value, label }) {
+    return (
+        <div className="rounded-2xl p-5 shimmer"
+            style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+            <div className="h-10 w-10 rounded-xl flex items-center justify-center card-lightning-subtle"
+                style={{ backgroundColor: 'rgba(var(--color-primary),0.12)' }}>
+                <Icon className="h-5 w-5" style={{ color: 'var(--color-primary)' }} />
+            </div>
+            <p className="font-black text-2xl mt-3" style={{ color: 'var(--color-primary)' }}>{value}</p>
+            <p className="text-[10px] mt-1" style={{ color: 'var(--color-text-muted)' }}>{label}</p>
+        </div>
+    );
 }
 
 export default function GroupBuy() {
@@ -114,6 +128,20 @@ export default function GroupBuy() {
         return 0;
     });
 
+    const kpis = useMemo(() => {
+        const open = buys.filter(isOpen);
+        const participants = buys.reduce((s, b) => s + (b.current_participants || 0), 0);
+        const avgDiscount = buys.length
+            ? Math.round(buys.reduce((s, b) => s + (b.discount_percent || 0), 0) / buys.length)
+            : 0;
+        return {
+            open: open.length,
+            participants,
+            avgDiscount,
+            total: buys.length,
+        };
+    }, [buys]);
+
     return (
         <div style={{ maxWidth: 700, margin: '0 auto' }}>
             <div className="flex items-center justify-between mb-5">
@@ -122,45 +150,52 @@ export default function GroupBuy() {
                         <Layers className="h-6 w-6" style={{ color: 'var(--color-primary)' }} />
                         Group Deals
                     </h1>
-                    <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-subtle)' }}>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
                         Bundle jobs with neighbors · Save up to 35%
                     </p>
                 </div>
                 {user && (
                     <button onClick={() => setCreateOpen(true)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold hover-lift"
                         style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)' }}>
                         <Plus className="h-3.5 w-3.5" /> Create Deal
                     </button>
                 )}
             </div>
 
+            {/* KPI Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+                <KpiCard icon={Layers} value={kpis.open} label="Open Deals" />
+                <KpiCard icon={Users} value={kpis.participants} label="Participants" />
+                <KpiCard icon={TrendingDown} value={`${kpis.avgDiscount}%`} label="Avg. Discount" />
+                <KpiCard icon={ShoppingCart} value={kpis.total} label="Total Deals" />
+            </div>
+
             {loading ? (
-                <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="skeleton-wave h-28 rounded-xl" />)}</div>
+                <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="skeleton-wave h-28 rounded-2xl" />)}</div>
             ) : sorted.length === 0 ? (
                 <div className="text-center py-16 border border-dashed rounded-2xl" style={{ borderColor: 'var(--color-border)' }}>
-                    <ShoppingCart className="h-10 w-10 mx-auto mb-3 opacity-30" />
-                    <p style={{ color: 'var(--color-text-subtle)' }}>No group deals yet</p>
-                    <button onClick={() => setCreateOpen(true)} className="mt-3 text-sm font-semibold underline">Create the first one</button>
+                    <ShoppingCart className="h-10 w-10 mx-auto mb-3" style={{ color: 'var(--color-text-subtle)', opacity: 0.3 }} />
+                    <p style={{ color: 'var(--color-text-muted)' }}>No group deals yet</p>
+                    <button onClick={() => setCreateOpen(true)} className="mt-3 text-sm font-semibold underline" style={{ color: 'var(--color-primary)' }}>Create the first one</button>
                 </div>
             ) : (
                 <div className="space-y-3">
                     {sorted.map(b => (
-                        <div key={b.id} className="rounded-xl border p-4 transition-all hover:shadow-md"
-                            style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)' }}>
+                        <div key={b.id} className="card-premium rounded-2xl p-5 hover-lift">
                             <div className="flex items-start justify-between mb-2">
                                 <div>
                                     <p className="font-semibold text-sm" style={{ color: 'var(--color-text)' }}>{b.service_category}</p>
-                                    {b.description && <p className="text-xs mt-1" style={{ color: 'var(--color-text-subtle)' }}>{b.description}</p>}
+                                    {b.description && <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>{b.description}</p>}
                                 </div>
                                 {!isOpen(b) && (
                                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                                        style={{ backgroundColor: 'var(--color-error-bg)', color: 'var(--color-error)' }}>
+                                        style={{ backgroundColor: 'rgba(var(--color-error),0.08)', color: 'var(--color-error)' }}>
                                         {isLocked(b) ? 'LOCKED' : 'EXPIRED'}
                                     </span>
                                 )}
                             </div>
-                            <div className="flex items-center gap-4 text-xs mb-3" style={{ color: 'var(--color-text-subtle)' }}>
+                            <div className="flex items-center gap-4 text-xs mb-3" style={{ color: 'var(--color-text-muted)' }}>
                                 <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" />{b.current_participants || 0}/{b.target_participants}</span>
                                 <span className="flex items-center gap-1"><TrendingDown className="h-3.5 w-3.5" />{b.discount_percent}% off</span>
                                 {b.expires_at && <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{countdown(b.expires_at)}</span>}
@@ -174,7 +209,7 @@ export default function GroupBuy() {
                                 </div>
                             ) : (
                                 <button onClick={() => joinBuy(b)} disabled={joining === b.id || isLocked(b) || !isOpen(b)}
-                                    className="w-full py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-all"
+                                    className="w-full py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 hover-lift"
                                     style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)', opacity: isLocked(b) || !isOpen(b) ? 0.5 : 1 }}>
                                     {joining === b.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
                                     {isLocked(b) ? 'Deal Locked' : !isOpen(b) ? 'Expired' : 'Join Deal'}
@@ -188,46 +223,45 @@ export default function GroupBuy() {
             {/* Create Dialog */}
             {createOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="fixed inset-0 bg-black/40" onClick={() => setCreateOpen(false)} />
-                    <div className="relative rounded-2xl p-5 w-full max-w-md shadow-xl"
-                        style={{ backgroundColor: 'var(--color-surface)' }}>
+                    <div className="fixed inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }} onClick={() => setCreateOpen(false)} />
+                    <div className="relative rounded-2xl p-5 w-full max-w-md card-premium">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="font-bold text-lg" style={{ color: 'var(--color-text)' }}>Create Group Deal</h2>
-                            <button onClick={() => setCreateOpen(false)} className="p-1 rounded-lg hover:bg-black/5"><X className="h-4 w-4" /></button>
+                            <button onClick={() => setCreateOpen(false)} className="p-1 rounded-lg hover:bg-black/5"><X className="h-4 w-4" style={{ color: 'var(--color-text-muted)' }} /></button>
                         </div>
                         <div className="space-y-3">
                             <div>
-                                <label className="text-xs font-semibold block mb-1">Service Category *</label>
+                                <label className="text-xs font-semibold block mb-1" style={{ color: 'var(--color-text-muted)' }}>Service Category *</label>
                                 <select value={form.service_category} onChange={e => setForm(p => ({ ...p, service_category: e.target.value }))}
-                                    className="w-full rounded-lg border px-3 py-2 text-sm" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)' }}>
+                                    className="input-lightning w-full rounded-xl border px-4 py-3.5 text-sm" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)' }}>
                                     <option value="">Select category</option>
                                     {SERVICE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                                 </select>
                             </div>
                             <div>
-                                <label className="text-xs font-semibold block mb-1">Description</label>
+                                <label className="text-xs font-semibold block mb-1" style={{ color: 'var(--color-text-muted)' }}>Description</label>
                                 <textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
-                                    className="w-full rounded-lg border px-3 py-2 text-sm resize-none" rows={2} style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)' }} />
+                                    className="input-lightning w-full rounded-xl border px-4 py-3.5 text-sm resize-none" rows={2} style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)' }} />
                             </div>
                             <div className="grid grid-cols-3 gap-3">
                                 <div>
-                                    <label className="text-xs font-semibold block mb-1">Target</label>
+                                    <label className="text-xs font-semibold block mb-1" style={{ color: 'var(--color-text-muted)' }}>Target</label>
                                     <input type="number" value={form.target_participants} onChange={e => setForm(p => ({ ...p, target_participants: e.target.value }))}
-                                        className="w-full rounded-lg border px-3 py-2 text-sm" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)' }} />
+                                        className="input-lightning w-full rounded-xl border px-4 py-3.5 text-sm" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)' }} />
                                 </div>
                                 <div>
-                                    <label className="text-xs font-semibold block mb-1">Discount %</label>
+                                    <label className="text-xs font-semibold block mb-1" style={{ color: 'var(--color-text-muted)' }}>Discount %</label>
                                     <input type="number" value={form.discount_percent} onChange={e => setForm(p => ({ ...p, discount_percent: e.target.value }))}
-                                        className="w-full rounded-lg border px-3 py-2 text-sm" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)' }} />
+                                        className="input-lightning w-full rounded-xl border px-4 py-3.5 text-sm" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)' }} />
                                 </div>
                                 <div>
-                                    <label className="text-xs font-semibold block mb-1">Expires (days)</label>
+                                    <label className="text-xs font-semibold block mb-1" style={{ color: 'var(--color-text-muted)' }}>Expires (days)</label>
                                     <input type="number" value={form.expires_days} onChange={e => setForm(p => ({ ...p, expires_days: e.target.value }))}
-                                        className="w-full rounded-lg border px-3 py-2 text-sm" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)' }} />
+                                        className="input-lightning w-full rounded-xl border px-4 py-3.5 text-sm" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)' }} />
                                 </div>
                             </div>
                             <button onClick={create} disabled={saving}
-                                className="w-full py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2"
+                                className="w-full py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover-lift"
                                 style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)' }}>
                                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
                                 {saving ? 'Creating...' : 'Create Group Deal'}

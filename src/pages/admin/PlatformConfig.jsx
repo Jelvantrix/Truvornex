@@ -115,27 +115,32 @@ export default function PlatformConfig() {
         <div className="space-y-6 max-w-3xl">
             <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
-                    <h1 className="font-display font-bold text-2xl tracking-tight">Platform Configuration</h1>
-                    <p className="text-muted-foreground text-sm mt-1">Changes are saved to the database and take effect immediately</p>
+                    <h1 className="font-display font-bold text-2xl tracking-tight" style={{ color: 'var(--color-primary)' }}>Platform Configuration</h1>
+                    <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>Changes are saved to the database and take effect immediately</p>
                 </div>
-                <Button onClick={handleSave} disabled={saving} className="rounded-xl bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 gap-2">
+                <Button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="rounded-xl btn-lightning gap-2"
+                    style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)' }}
+                >
                     {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                     {saving ? 'Saving...' : 'Save Configuration'}
                 </Button>
             </div>
 
             {CONFIG_SECTIONS.map(section => (
-                <div key={section.id} className="card-premium p-6">
+                <div key={section.id} className="card-premium rounded-2xl p-6 shimmer hover-lift">
                     <div className="flex items-center gap-2.5 mb-5">
-                        <div className="h-9 w-9 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-                            <section.icon className="h-4 w-4 text-zinc-700 dark:text-zinc-300" />
+                        <div className="h-9 w-9 rounded-xl flex items-center justify-center card-lightning-subtle" style={{ backgroundColor: 'rgba(var(--color-primary),0.12)' }}>
+                            <section.icon className="h-4 w-4" style={{ color: 'var(--color-primary)' }} />
                         </div>
-                        <h2 className="font-semibold text-base">{section.title}</h2>
+                        <h2 className="font-semibold text-base" style={{ color: 'var(--color-primary)' }}>{section.title}</h2>
                     </div>
                     <div className="space-y-4">
                         {section.fields.map(field => (
                             <div key={field.key} className="flex items-center justify-between gap-4">
-                                <label className="text-sm font-medium flex-1">{field.label}</label>
+                                <label className="text-sm font-medium flex-1" style={{ color: 'var(--color-text)' }}>{field.label}</label>
                                 {field.type === 'toggle' ? (
                                     <Switch
                                         checked={getBool(field.key)}
@@ -144,9 +149,10 @@ export default function PlatformConfig() {
                                 ) : (
                                     <Input
                                         type={field.type}
+                                        variant="lightning"
                                         value={config[field.key] ?? ''}
                                         onChange={e => setValue(field.key, e.target.value)}
-                                        className="max-w-48 h-9 rounded-xl text-sm"
+                                        className="max-w-48 rounded-xl text-sm"
                                     />
                                 )}
                             </div>

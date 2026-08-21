@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Eye, EyeOff, Zap, ArrowRight, Loader2, CheckCircle, Shield, ChevronRight } from 'lucide-react';
+import { Eye, EyeOff, Zap, ArrowRight, Loader2, CheckCircle, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 
 /* ─── Animated particle logo for the login left panel ─────────── */

@@ -4,7 +4,7 @@ import { useTheme } from '@/lib/ThemeContext';
 import {
     LayoutDashboard, Wrench, CalendarDays, DollarSign, User,
     Moon, Sun, Menu, X, Bot, Users, ChevronRight,
-    TrendingUp, MessageSquare, Home, Zap, Bell,
+    TrendingUp, MessageSquare, Home, Zap,
     PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 

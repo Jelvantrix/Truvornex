@@ -78,9 +78,9 @@ export default function SkillSwap() {
     };
 
     const STATUS_BADGE = {
-        open:      'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
-        matched:   'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
-        completed: 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500',
+        open:      { bg: 'rgba(var(--color-primary),0.12)', color: 'var(--color-primary)' },
+        matched:   { bg: 'rgba(var(--color-success),0.12)', color: 'var(--color-success)' },
+        completed: { bg: 'rgba(var(--color-text-muted),0.12)', color: 'var(--color-text-muted)' },
     };
 
     return (
@@ -88,12 +88,12 @@ export default function SkillSwap() {
             {/* Header */}
             <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-2xl bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
-                        <RefreshCw className="h-5 w-5 text-teal-600" />
+                    <div className="h-10 w-10 rounded-2xl flex items-center justify-center card-lightning-subtle" style={{ backgroundColor: 'rgba(var(--color-primary),0.12)' }}>
+                        <RefreshCw className="h-5 w-5" style={{ color: 'var(--color-primary)' }} />
                     </div>
                     <div>
-                        <h1 className="font-bold text-2xl tracking-tight text-zinc-900 dark:text-white">Skill Exchange</h1>
-                        <p className="text-zinc-400 text-sm mt-0.5">Trade skills · earn time credits</p>
+                        <h1 className="font-bold text-2xl tracking-tight" style={{ color: 'var(--color-primary)' }}>Skill Exchange</h1>
+                        <p className="text-sm mt-0.5" style={{ color: 'var(--color-text-muted)' }}>Trade skills · earn time credits</p>
                     </div>
                 </div>
                 <Button className="rounded-xl gap-2" onClick={() => user ? setDialog(true) : toast.error('Sign in first')}>
@@ -101,37 +101,44 @@ export default function SkillSwap() {
                 </Button>
             </div>
 
-            {/* Time credits balance */}
-            <div className="bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 rounded-2xl p-5 flex items-center justify-between">
-                <div>
-                    <p className="text-xs font-bold uppercase tracking-widest opacity-50 mb-1">Your Time Credits</p>
-                    <p className="text-4xl font-black">{balance}</p>
-                    <p className="text-xs opacity-40 mt-1">1 credit = 1 hour of service</p>
+            {/* KPI: Time credits balance */}
+            <div className="rounded-2xl p-5 shimmer hover-lift" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--color-text-muted)', opacity: 0.7 }}>Your Time Credits</p>
+                        <p className="text-4xl font-black" style={{ color: 'var(--color-primary)' }}>{balance}</p>
+                        <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)', opacity: 0.7 }}>1 credit = 1 hour of service</p>
+                    </div>
+                    <div className="h-12 w-12 rounded-xl flex items-center justify-center card-lightning-subtle" style={{ backgroundColor: 'rgba(var(--color-primary),0.12)' }}>
+                        <Star className="h-6 w-6" style={{ color: 'var(--color-primary)', opacity: 0.5 }} strokeWidth={1} />
+                    </div>
                 </div>
-                <Star className="h-12 w-12 opacity-20" strokeWidth={1} />
             </div>
 
             {/* My swaps */}
             {mySwaps.length > 0 && (
                 <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-3">My Swaps</p>
+                    <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--color-text-muted)' }}>My Swaps</p>
                     <div className="space-y-2">
-                        {mySwaps.map(s => (
-                            <div key={s.id} className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-xl p-4 flex items-center gap-3 flex-wrap">
-                                <span className="text-xs font-medium text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-900/20 px-2 py-0.5 rounded-full flex items-center gap-1">
-                                    <GraduationCap className="h-2.5 w-2.5" /> {s.offering}
-                                </span>
-                                <ArrowRight className="h-3 w-3 text-zinc-300 shrink-0" />
-                                <span className="text-xs font-medium text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-900/20 px-2 py-0.5 rounded-full flex items-center gap-1">
-                                    <Search className="h-2.5 w-2.5" /> {s.seeking}
-                                </span>
-                                <div className="ml-auto">
-                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${STATUS_BADGE[s.status] || STATUS_BADGE.open}`}>
-                                        {s.status}
+                        {mySwaps.map(s => {
+                            const badge = STATUS_BADGE[s.status] || STATUS_BADGE.open;
+                            return (
+                                <div key={s.id} className="rounded-2xl p-4 flex items-center gap-3 flex-wrap card-premium hover-lift">
+                                    <span className="text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1" style={{ color: 'var(--color-primary)', backgroundColor: 'rgba(var(--color-primary),0.10)' }}>
+                                        <GraduationCap className="h-2.5 w-2.5" /> {s.offering}
                                     </span>
+                                    <ArrowRight className="h-3 w-3 shrink-0" style={{ color: 'var(--color-text-muted)' }} />
+                                    <span className="text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1" style={{ color: 'var(--color-secondary)', backgroundColor: 'rgba(var(--color-secondary),0.10)' }}>
+                                        <Search className="h-2.5 w-2.5" /> {s.seeking}
+                                    </span>
+                                    <div className="ml-auto">
+                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: badge.bg, color: badge.color }}>
+                                            {s.status}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             )}
@@ -139,8 +146,8 @@ export default function SkillSwap() {
             {/* Browse available swaps */}
             <div>
                 <div className="flex items-center justify-between mb-3">
-                    <p className="text-xs font-bold uppercase tracking-widest text-zinc-400">Available Swaps</p>
-                    <span className="text-[10px] text-zinc-400">{swaps.length} posted</span>
+                    <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>Available Swaps</p>
+                    <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>{swaps.length} posted</span>
                 </div>
 
                 {loading ? (
@@ -148,12 +155,12 @@ export default function SkillSwap() {
                         {Array.from({ length: 4 }).map((_, i) => <div key={i} className="skeleton-wave h-24 rounded-2xl" />)}
                     </div>
                 ) : swaps.length === 0 ? (
-                    <div className="text-center py-16 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl">
-                        <RefreshCw className="h-10 w-10 mx-auto mb-3 text-zinc-200 dark:text-zinc-700" strokeWidth={1.5} />
-                        <p className="text-zinc-400 font-medium">No swaps posted yet</p>
-                        <p className="text-xs text-zinc-400 mt-1">Be the first — post what you offer and need</p>
+                    <div className="text-center py-16 rounded-2xl card-premium" style={{ borderColor: 'var(--color-border)' }}>
+                        <RefreshCw className="h-10 w-10 mx-auto mb-3" strokeWidth={1.5} style={{ color: 'var(--color-border-strong)' }} />
+                        <p className="font-medium" style={{ color: 'var(--color-text-muted)' }}>No swaps posted yet</p>
+                        <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Be the first — post what you offer and need</p>
                         {user && (
-                            <button onClick={() => setDialog(true)} className="mt-4 text-sm font-semibold text-zinc-900 dark:text-white underline underline-offset-2">
+                            <button onClick={() => setDialog(true)} className="mt-4 text-sm font-semibold underline underline-offset-2" style={{ color: 'var(--color-primary)' }}>
                                 Post the first swap
                             </button>
                         )}
@@ -161,18 +168,18 @@ export default function SkillSwap() {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {swaps.map(s => (
-                            <div key={s.id} className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-5">
+                            <div key={s.id} className="rounded-2xl p-5 card-premium hover-lift">
                                 <div className="flex flex-wrap gap-2 mb-3">
-                                    <span className="text-xs font-semibold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5" style={{ color: 'var(--color-primary)', backgroundColor: 'rgba(var(--color-primary),0.10)' }}>
                                         <GraduationCap className="h-3 w-3" /> Offering: {s.offering}
                                     </span>
-                                    <span className="text-xs font-semibold text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5" style={{ color: 'var(--color-secondary)', backgroundColor: 'rgba(var(--color-secondary),0.10)' }}>
                                         <Search className="h-3 w-3" /> Seeking: {s.seeking}
                                     </span>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <span className="text-xs text-zinc-400 flex items-center gap-1">
-                                        <Star className="h-3 w-3 text-amber-500" />
+                                    <span className="text-xs flex items-center gap-1" style={{ color: 'var(--color-text-muted)' }}>
+                                        <Star className="h-3 w-3" style={{ color: 'var(--color-warning)' }} />
                                         {s.time_credits_offered} credit{s.time_credits_offered !== 1 ? 's' : ''}
                                     </span>
                                     <Button size="sm" className="h-7 rounded-xl text-[10px] gap-1"
@@ -191,29 +198,29 @@ export default function SkillSwap() {
 
             {/* Post dialog */}
             <Dialog open={dialog} onOpenChange={setDialog}>
-                <DialogContent className="max-w-md">
+                <DialogContent className="max-w-md rounded-2xl" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
                     <DialogHeader><DialogTitle>Post a Skill Swap</DialogTitle></DialogHeader>
                     <div className="space-y-3 pt-1">
-                        <div className="bg-teal-50 dark:bg-teal-900/20 border border-teal-100 dark:border-teal-800 rounded-xl p-3">
-                            <p className="text-xs font-bold text-teal-700 dark:text-teal-300 mb-1.5 flex items-center gap-1.5">
+                        <div className="rounded-xl p-3 card-lightning-subtle" style={{ backgroundColor: 'rgba(var(--color-primary),0.08)', border: '1px solid rgba(var(--color-primary),0.18)' }}>
+                            <p className="text-xs font-bold mb-1.5 flex items-center gap-1.5" style={{ color: 'var(--color-primary)' }}>
                                 <GraduationCap className="h-3.5 w-3.5" /> What I Offer
                             </p>
                             <Input placeholder="e.g. Web design, cooking lessons, photography"
-                                value={form.offering} onChange={e => setForm(p => ({ ...p, offering: e.target.value }))} className="rounded-xl" />
+                                value={form.offering} onChange={e => setForm(p => ({ ...p, offering: e.target.value }))} className="input-lightning" />
                         </div>
-                        <div className="bg-violet-50 dark:bg-violet-900/20 border border-violet-100 dark:border-violet-800 rounded-xl p-3">
-                            <p className="text-xs font-bold text-violet-700 dark:text-violet-300 mb-1.5 flex items-center gap-1.5">
+                        <div className="rounded-xl p-3 card-lightning-subtle" style={{ backgroundColor: 'rgba(var(--color-secondary),0.08)', border: '1px solid rgba(var(--color-secondary),0.18)' }}>
+                            <p className="text-xs font-bold mb-1.5 flex items-center gap-1.5" style={{ color: 'var(--color-secondary)' }}>
                                 <Search className="h-3.5 w-3.5" /> What I Need
                             </p>
                             <Input placeholder="e.g. Plumbing help, accounting, tutoring"
-                                value={form.seeking} onChange={e => setForm(p => ({ ...p, seeking: e.target.value }))} className="rounded-xl" />
+                                value={form.seeking} onChange={e => setForm(p => ({ ...p, seeking: e.target.value }))} className="input-lightning" />
                         </div>
                         <div>
-                            <p className="text-xs text-zinc-400 mb-1">Time credits offered (hours)</p>
+                            <p className="text-xs mb-1" style={{ color: 'var(--color-text-muted)' }}>Time credits offered (hours)</p>
                             <Input type="number" min={1} max={20} value={form.time_credits}
-                                onChange={e => setForm(p => ({ ...p, time_credits: e.target.value }))} className="rounded-xl" />
+                                onChange={e => setForm(p => ({ ...p, time_credits: e.target.value }))} className="input-lightning" />
                         </div>
-                        <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-xl p-3 text-xs text-zinc-500">
+                        <div className="rounded-xl p-3 text-xs" style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
                             When a match is confirmed, credits transfer between both parties automatically via the time bank.
                         </div>
                         <Button className="w-full h-11 rounded-xl gap-2" onClick={post}

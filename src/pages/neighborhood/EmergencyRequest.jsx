@@ -112,21 +112,21 @@ export default function EmergencyRequest() {
         <div className="space-y-6 pb-8 max-w-2xl">
             {/* Header */}
             <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-2xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                    <Zap className="h-5 w-5 text-red-600" />
+                <div className="h-10 w-10 rounded-2xl flex items-center justify-center card-lightning-subtle" style={{ backgroundColor: 'rgba(var(--color-error),0.12)' }}>
+                    <Zap className="h-5 w-5" style={{ color: 'var(--color-error)' }} />
                 </div>
                 <div>
-                    <h1 className="font-bold text-2xl tracking-tight text-zinc-900 dark:text-white">Emergency Request</h1>
-                    <p className="text-zinc-400 text-sm mt-0.5">On-demand urgent service dispatch</p>
+                    <h1 className="font-bold text-2xl tracking-tight" style={{ color: 'var(--color-primary)' }}>Emergency Request</h1>
+                    <p className="text-sm mt-0.5" style={{ color: 'var(--color-text-muted)' }}>On-demand urgent service dispatch</p>
                 </div>
             </div>
 
             {/* Safety notice */}
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-2xl p-4 flex items-start gap-3">
-                <AlertTriangle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+            <div className="rounded-2xl p-4 flex items-start gap-3 card-premium hover-lift" style={{ backgroundColor: 'var(--color-error-bg)', border: '1px solid rgba(var(--color-error),0.18)' }}>
+                <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" style={{ color: 'var(--color-error)' }} />
                 <div>
-                    <p className="font-semibold text-sm text-red-700 dark:text-red-300">For life-threatening emergencies call 911</p>
-                    <p className="text-xs text-red-500 dark:text-red-400 mt-0.5">
+                    <p className="font-semibold text-sm" style={{ color: 'var(--color-error)' }}>For life-threatening emergencies call 911</p>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
                         This service covers home emergencies — burst pipes, power outages, lockouts, HVAC failures.
                     </p>
                 </div>
@@ -134,18 +134,17 @@ export default function EmergencyRequest() {
 
             {/* Active request tracker */}
             {activeReq && (
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5">
+                <div className="rounded-2xl p-5 card-premium hover-lift">
                     <div className="flex items-center justify-between mb-4">
-                        <p className="font-semibold text-zinc-900 dark:text-white">Active Request</p>
-                        <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${
-                            activeReq.status === 'resolved'
-                                ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
-                                : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
-                        }`}>
+                        <p className="font-semibold" style={{ color: 'var(--color-primary)' }}>Active Request</p>
+                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase" style={{
+                            backgroundColor: activeReq.status === 'resolved' ? 'rgba(var(--color-success),0.12)' : 'rgba(var(--color-warning),0.12)',
+                            color: activeReq.status === 'resolved' ? 'var(--color-success)' : 'var(--color-warning)'
+                        }}>
                             {activeReq.status.replace('_', ' ')}
                         </span>
                     </div>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-5 capitalize">
+                    <p className="text-sm mb-5 capitalize" style={{ color: 'var(--color-text-muted)' }}>
                         {activeReq.category} — {activeReq.description}
                     </p>
 
@@ -159,19 +158,20 @@ export default function EmergencyRequest() {
                                     <div className="flex flex-col items-center gap-1.5">
                                         <div className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition-all ${
                                             done
-                                                ? 'bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white'
-                                                : 'border-zinc-200 dark:border-zinc-700 bg-transparent'
-                                        }`}>
-                                            {done && <CheckCircle className="h-3.5 w-3.5 text-white dark:text-zinc-900" />}
+                                                ? ''
+                                                : 'bg-transparent'
+                                        }`} style={{
+                                            borderColor: done ? 'var(--color-primary)' : 'var(--color-border-strong)',
+                                            backgroundColor: done ? 'var(--color-primary)' : 'transparent'
+                                        }}>
+                                            {done && <CheckCircle className="h-3.5 w-3.5" style={{ color: 'var(--color-surface)' }} />}
                                         </div>
-                                        <p className="text-[9px] text-zinc-400 text-center w-16 leading-tight">{STATUS_LABELS[step]}</p>
+                                        <p className="text-[9px] text-center w-16 leading-tight" style={{ color: 'var(--color-text-muted)' }}>{STATUS_LABELS[step]}</p>
                                     </div>
                                     {!isLast && (
-                                        <div className={`h-0.5 flex-1 mx-1 mt-3 rounded-full transition-all ${
-                                            i < stepIdx(activeReq.status)
-                                                ? 'bg-zinc-900 dark:bg-white'
-                                                : 'bg-zinc-100 dark:bg-zinc-800'
-                                        }`} />
+                                        <div className="h-0.5 flex-1 mx-1 mt-3 rounded-full transition-all" style={{
+                                            backgroundColor: i < stepIdx(activeReq.status) ? 'var(--color-primary)' : 'var(--color-border-strong)'
+                                        }} />
                                     )}
                                 </div>
                             );
@@ -179,8 +179,8 @@ export default function EmergencyRequest() {
                     </div>
 
                     {activeReq.matched_provider_id && activeReq.status === 'matched' && (
-                        <div className="mt-4 p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-xl">
-                            <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">Provider matched — on their way</p>
+                        <div className="mt-4 p-3 rounded-xl card-success">
+                            <p className="text-xs font-semibold">Provider matched — on their way</p>
                         </div>
                     )}
 
@@ -194,40 +194,46 @@ export default function EmergencyRequest() {
 
             {/* Request form */}
             {!activeReq && (
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-5 space-y-5">
-                    <h2 className="font-semibold text-sm text-zinc-900 dark:text-white">New Emergency Request</h2>
+                <div className="rounded-2xl p-6 card-premium hover-lift space-y-5">
+                    <h2 className="font-semibold text-sm" style={{ color: 'var(--color-primary)' }}>New Emergency Request</h2>
 
                     <div>
-                        <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">What type of emergency?</p>
+                        <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: 'var(--color-text-muted)' }}>What type of emergency?</p>
                         <div className="grid grid-cols-3 gap-2">
                             {EMERGENCY_CATEGORIES.map(cat => (
                                 <button key={cat.id} onClick={() => setForm(f => ({ ...f, category: cat.id }))}
                                     className={`p-3 rounded-xl border text-center transition-all ${
                                         form.category === cat.id
-                                            ? 'border-zinc-900 dark:border-white bg-zinc-900/5 dark:bg-white/10'
-                                            : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
-                                    }`}>
-                                    <cat.Icon className="h-5 w-5 mx-auto mb-1 text-zinc-600 dark:text-zinc-400" />
-                                    <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300">{cat.label}</p>
+                                            ? 'card-lightning-subtle'
+                                            : 'hover-lift'
+                                    }`} style={{
+                                        borderColor: form.category === cat.id ? 'var(--color-primary)' : 'var(--color-border-strong)',
+                                        backgroundColor: form.category === cat.id ? 'rgba(var(--color-primary),0.12)' : 'transparent'
+                                    }}>
+                                    <cat.Icon className="h-5 w-5 mx-auto mb-1" style={{ color: 'var(--color-primary)' }} />
+                                    <p className="text-xs font-medium" style={{ color: 'var(--color-text)' }}>{cat.label}</p>
                                 </button>
                             ))}
                         </div>
                     </div>
 
                     <div>
-                        <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">How urgent?</p>
+                        <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: 'var(--color-text-muted)' }}>How urgent?</p>
                         <div className="grid grid-cols-3 gap-2">
                             {URGENCY_LEVELS.map(u => (
                                 <button key={u.id} onClick={() => setForm(f => ({ ...f, urgency: u.id }))}
                                     className={`p-3 rounded-xl border text-center transition-all ${
                                         form.urgency === u.id
-                                            ? 'border-zinc-900 dark:border-white bg-zinc-900 dark:bg-white'
-                                            : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300'
-                                    }`}>
-                                    <p className={`font-bold text-xs ${form.urgency === u.id ? 'text-white dark:text-zinc-900' : 'text-zinc-900 dark:text-white'}`}>
+                                            ? 'card-lightning-subtle'
+                                            : 'hover-lift'
+                                    }`} style={{
+                                        borderColor: form.urgency === u.id ? 'var(--color-primary)' : 'var(--color-border-strong)',
+                                        backgroundColor: form.urgency === u.id ? 'var(--color-primary)' : 'transparent'
+                                    }}>
+                                    <p className="font-bold text-xs" style={{ color: form.urgency === u.id ? 'var(--color-surface)' : 'var(--color-primary)' }}>
                                         {u.label}
                                     </p>
-                                    <p className={`text-[10px] mt-0.5 ${form.urgency === u.id ? 'text-white/70 dark:text-zinc-900/70' : 'text-zinc-400'}`}>
+                                    <p className="text-[10px] mt-0.5" style={{ color: form.urgency === u.id ? 'var(--color-surface)' : 'var(--color-text-muted)', opacity: form.urgency === u.id ? 0.7 : 1 }}>
                                         {u.sub}
                                     </p>
                                 </button>
@@ -236,12 +242,12 @@ export default function EmergencyRequest() {
                     </div>
 
                     <div>
-                        <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">Describe the issue</p>
+                        <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--color-text-muted)' }}>Describe the issue</p>
                         <Textarea
                             placeholder="e.g. Kitchen pipe burst, water flooding the floor..."
                             value={form.description}
                             onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                            className="rounded-xl resize-none"
+                            className="input-lightning resize-none"
                             rows={3}
                         />
                     </div>
@@ -251,7 +257,7 @@ export default function EmergencyRequest() {
                             {locating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MapPin className="h-3.5 w-3.5" />}
                             {loc ? 'Location Captured' : 'Share Location'}
                         </Button>
-                        {loc && <p className="text-xs text-zinc-400">{loc.lat.toFixed(4)}, {loc.lng.toFixed(4)}</p>}
+                        {loc && <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{loc.lat.toFixed(4)}, {loc.lng.toFixed(4)}</p>}
                     </div>
 
                     <Button
@@ -263,7 +269,7 @@ export default function EmergencyRequest() {
                     </Button>
 
                     {!user && (
-                        <p className="text-xs text-center text-zinc-400">You must be logged in to submit a request</p>
+                        <p className="text-xs text-center" style={{ color: 'var(--color-text-muted)' }}>You must be logged in to submit a request</p>
                     )}
                 </div>
             )}
@@ -271,20 +277,19 @@ export default function EmergencyRequest() {
             {/* Past requests */}
             {requests.filter(r => ['resolved', 'cancelled'].includes(r.status)).length > 0 && (
                 <div>
-                    <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">Past Requests</p>
+                    <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: 'var(--color-text-muted)' }}>Past Requests</p>
                     <div className="space-y-2">
                         {requests.filter(r => ['resolved', 'cancelled'].includes(r.status)).map(r => (
-                            <div key={r.id} className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-xl p-4 flex items-center gap-3">
-                                <div className={`h-2 w-2 rounded-full shrink-0 ${r.status === 'resolved' ? 'bg-emerald-500' : 'bg-zinc-300'}`} />
+                            <div key={r.id} className="rounded-2xl p-4 flex items-center gap-3 card-premium hover-lift">
+                                <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: r.status === 'resolved' ? 'var(--color-success)' : 'var(--color-border-strong)' }} />
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-zinc-900 dark:text-white capitalize">{r.category}</p>
-                                    <p className="text-xs text-zinc-400 line-clamp-1">{r.description}</p>
+                                    <p className="text-sm font-medium capitalize" style={{ color: 'var(--color-primary)' }}>{r.category}</p>
+                                    <p className="text-xs line-clamp-1" style={{ color: 'var(--color-text-muted)' }}>{r.description}</p>
                                 </div>
-                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                                    r.status === 'resolved'
-                                        ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
-                                        : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500'
-                                }`}>
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{
+                                    backgroundColor: r.status === 'resolved' ? 'rgba(var(--color-success),0.12)' : 'rgba(var(--color-text-muted),0.12)',
+                                    color: r.status === 'resolved' ? 'var(--color-success)' : 'var(--color-text-muted)'
+                                }}>
                                     {r.status}
                                 </span>
                             </div>

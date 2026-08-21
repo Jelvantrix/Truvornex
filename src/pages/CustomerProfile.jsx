@@ -63,7 +63,7 @@ export default function CustomerProfile() {
             });
             toast.success('Profile updated!');
             setEditMode(false);
-        } catch (err) {
+        } catch {
             toast.error('Failed to save profile');
         }
         setSaving(false);
@@ -91,7 +91,7 @@ export default function CustomerProfile() {
     if (!user) {
         return (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="h-16 w-16 rounded-2xl flex items-center justify-center mb-4" style={{ backgroundColor: 'var(--color-surface-high)' }}>
+                <div className="h-16 w-16 rounded-2xl flex items-center justify-center mb-4 card-lightning-subtle" style={{ backgroundColor: 'var(--color-surface-high)' }}>
                     <User className="h-8 w-8" style={{ color: 'var(--color-text-subtle)' }} />
                 </div>
                 <h2 className="text-lg font-bold mb-2" style={{ color: 'var(--color-primary)' }}>Sign in to view your profile</h2>
@@ -105,11 +105,12 @@ export default function CustomerProfile() {
     const displayValue = (val, placeholder = 'Not set') => val || placeholder;
 
     return (
-        <div className="max-w-md mx-auto pb-24 md:pb-8">
+        <div className="max-w-md mx-auto pb-24 md:pb-8 space-y-4">
             {/* Profile header card */}
-            <div className="card-premium p-6 mb-4 text-center">
+            <div className="rounded-2xl p-6 shimmer card-lightning-subtle text-center hover-lift"
+                style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
                 <div className="relative inline-block mb-4">
-                    <div className="h-24 w-24 rounded-full overflow-hidden cursor-pointer mx-auto group relative"
+                    <div className="h-24 w-24 rounded-full overflow-hidden cursor-pointer mx-auto group relative card-lightning-subtle"
                         style={{ border: '3px solid var(--color-surface)', backgroundColor: 'var(--color-surface-high)', boxShadow: 'var(--shadow-float)' }}
                         onClick={() => fileRef.current.click()}>
                         {form.avatar_url ? (
@@ -127,7 +128,7 @@ export default function CustomerProfile() {
                         </div>
                     </div>
                     <button onClick={() => fileRef.current.click()}
-                        className="absolute bottom-0 right-0 h-7 w-7 rounded-full flex items-center justify-center shadow-sm"
+                        className="absolute bottom-0 right-0 h-7 w-7 rounded-full flex items-center justify-center shadow-sm card-lightning-subtle"
                         style={{ backgroundColor: 'var(--color-primary)', border: '2px solid var(--color-surface)', color: 'var(--color-on-primary)' }}>
                         <Camera className="h-3.5 w-3.5" />
                     </button>
@@ -145,7 +146,8 @@ export default function CustomerProfile() {
             </div>
 
             {/* Contact info */}
-            <div className="card-premium p-6 mb-4 space-y-4">
+            <div className="rounded-2xl p-6 shimmer card-lightning-subtle space-y-4"
+                style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
                 <h2 className="font-bold text-sm" style={{ color: 'var(--color-primary)' }}>Contact Information</h2>
 
                 {[
@@ -163,7 +165,7 @@ export default function CustomerProfile() {
                 <div>
                     <label style={labelStyle}><Phone className="h-3.5 w-3.5" />Phone Number</label>
                     {editMode ? (
-                        <Input type="tel" value={form.phone || ''} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                        <Input variant="lightning" type="tel" value={form.phone || ''} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
                             placeholder="+1 (555) 000-0000" className="h-11 rounded-xl" />
                     ) : (
                         <div style={fieldStyle}>
@@ -176,7 +178,7 @@ export default function CustomerProfile() {
                 <div>
                     <label style={labelStyle}><MapPin className="h-3.5 w-3.5" />City</label>
                     {editMode ? (
-                        <Input value={form.city || ''} onChange={e => setForm(f => ({ ...f, city: e.target.value }))}
+                        <Input variant="lightning" value={form.city || ''} onChange={e => setForm(f => ({ ...f, city: e.target.value }))}
                             placeholder="Your city" className="h-11 rounded-xl" />
                     ) : (
                         <div style={fieldStyle}>
@@ -188,18 +190,16 @@ export default function CustomerProfile() {
                 {editMode && (
                     <div className="flex gap-3 pt-1">
                         <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setEditMode(false)}>Cancel</Button>
-                        <button className="flex-1 h-11 rounded-xl text-sm font-semibold"
+                        <button className="flex-1 h-11 rounded-xl text-sm font-semibold btn-lightning"
                             style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)', border: 'none', cursor: saving ? 'wait' : 'pointer', fontFamily: 'inherit', opacity: saving ? 0.7 : 1 }}
-                            onClick={save} disabled={saving}
-                            onMouseEnter={e => { if (!saving) e.currentTarget.style.opacity = '0.88'; }}
-                            onMouseLeave={e => { if (!saving) e.currentTarget.style.opacity = '1'; }}>
+                            onClick={save} disabled={saving}>
                             {saving ? 'Saving…' : 'Save Changes'}
                         </button>
                     </div>
                 )}
             </div>
 
-            <button onClick={handleLogout} className="w-full mt-4 rounded-xl h-10 text-sm font-medium flex items-center justify-center gap-2"
+            <button onClick={handleLogout} className="w-full mt-4 rounded-xl h-10 text-sm font-medium flex items-center justify-center gap-2 card-lightning-subtle hover-lift"
                 style={{ color: 'var(--color-error)', backgroundColor: 'var(--color-error-bg)', border: '1px solid rgba(252,165,165,0.2)', cursor: 'pointer', fontFamily: 'inherit' }}>
                 <LogOut className="h-4 w-4" /> Sign Out
             </button>

@@ -15,7 +15,7 @@ function getTodayStatus(working_hours) {
 }
 
 const ReviewCard = ({ review }) => (
-    <div className="card-premium p-4">
+    <div className="card-premium p-4 shimmer">
         <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold"
@@ -61,7 +61,7 @@ export default function ProviderDetail() {
 
     if (!provider) return (
         <div className="text-center py-20">
-            <p className="text-zinc-400">Provider not found.</p>
+            <p style={{ color: 'var(--color-text-muted)' }}>Provider not found.</p>
             <Button asChild variant="outline" className="mt-4"><Link to="/services">Browse Services</Link></Button>
         </div>
     );
@@ -70,25 +70,29 @@ export default function ProviderDetail() {
 
     return (
         <div className="pb-24 md:pb-8 max-w-3xl mx-auto">
-            <Link to="/services" className="inline-flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors mb-4">
+            <Link to="/services" className="inline-flex items-center gap-1.5 text-sm transition-colors mb-4 hover:opacity-75" style={{ color: 'var(--color-text-muted)' }}>
                 <ArrowLeft className="h-3.5 w-3.5" /> Back
             </Link>
 
             {/* Hero */}
-            <div className="card-premium overflow-hidden mb-5 p-0">
-                <div className="relative h-56 bg-zinc-100">
+            <div className="card-premium overflow-hidden mb-5 p-0 shimmer">
+                <div className="relative h-56" style={{ backgroundColor: 'var(--color-surface-high)' }}>
                     {provider.cover_image ? (
                         <img src={provider.cover_image} alt="" className="w-full h-full object-cover" />
                     ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-zinc-100 to-zinc-800 dark:from-zinc-800 dark:to-zinc-900 flex items-center justify-center">
-                            <span className="text-8xl font-black text-zinc-200 dark:text-zinc-700">{provider.business_name?.[0]}</span>
+                        <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, var(--color-surface-high), var(--color-background))' }}>
+                            <span className="text-8xl font-black" style={{ color: 'var(--color-border-strong)' }}>{provider.business_name?.[0]}</span>
                         </div>
                     )}
                     {/* Gradient overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                     {/* Status badge */}
                     {todayStatus && (
-                        <div className={`absolute top-4 right-4 glass rounded-full px-3 py-1.5 text-xs font-semibold ${todayStatus.open ? 'text-emerald-700' : 'text-red-600'}`}>
+                        <div className="absolute top-4 right-4 glass rounded-full px-3 py-1.5 text-xs font-semibold"
+                            style={{
+                                backgroundColor: todayStatus.open ? 'rgba(var(--color-success),0.12)' : 'rgba(var(--color-error),0.12)',
+                                color: todayStatus.open ? 'var(--color-success)' : 'var(--color-error)'
+                            }}>
                             {todayStatus.text}
                         </div>
                     )}
@@ -97,10 +101,10 @@ export default function ProviderDetail() {
                     <div className="flex items-start justify-between gap-4 flex-wrap">
                         <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1.5">
-                                <h1 className="font-inter font-black text-2xl text-zinc-900 dark:text-zinc-100">{provider.business_name}</h1>
-                                {provider.verified && <CheckCircle className="h-5 w-5 text-zinc-500 dark:text-zinc-400 shrink-0" />}
+                                <h1 className="font-inter font-black text-2xl" style={{ color: 'var(--color-text)' }}>{provider.business_name}</h1>
+                                {provider.verified && <CheckCircle className="h-5 w-5 shrink-0" style={{ color: 'var(--color-text-muted)' }} />}
                             </div>
-                            <div className="flex items-center gap-4 flex-wrap text-sm text-zinc-500 dark:text-zinc-400">
+                            <div className="flex items-center gap-4 flex-wrap text-sm" style={{ color: 'var(--color-text-muted)' }}>
                                 {provider.rating > 0 && (
                                     <div className="flex items-center gap-1">
                                         <Star className="h-4 w-4" style={{ color: 'var(--color-primary)', fill: 'var(--color-primary)' }} />
@@ -114,24 +118,24 @@ export default function ProviderDetail() {
                         </div>
                     </div>
                     {provider.description && (
-                        <p className="text-zinc-500 text-sm mt-4 leading-relaxed">{provider.description}</p>
+                        <p className="text-sm mt-4 leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>{provider.description}</p>
                     )}
                 </div>
             </div>
 
             {/* Stats row */}
             <div className="grid grid-cols-3 gap-3 mb-5">
-                <div className="card-premium p-4 text-center">
-                    <div className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{services.length}</div>
-                    <div className="text-xs text-zinc-400 mt-1">Services</div>
+                <div className="rounded-2xl p-5 shimmer" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                    <p className="font-black text-2xl" style={{ color: 'var(--color-text)' }}>{services.length}</p>
+                    <p className="text-[10px] mt-1" style={{ color: 'var(--color-text-muted)' }}>Services</p>
                 </div>
-                <div className="card-premium p-4 text-center">
-                    <div className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{provider.review_count || 0}</div>
-                    <div className="text-xs text-zinc-400 mt-1">Reviews</div>
+                <div className="rounded-2xl p-5 shimmer" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                    <p className="font-black text-2xl" style={{ color: 'var(--color-text)' }}>{provider.review_count || 0}</p>
+                    <p className="text-[10px] mt-1" style={{ color: 'var(--color-text-muted)' }}>Reviews</p>
                 </div>
-                <div className="card-premium p-4 text-center">
-                    <div className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{provider.rating?.toFixed(1) || '—'}</div>
-                    <div className="text-xs text-zinc-400 mt-1">Rating</div>
+                <div className="rounded-2xl p-5 shimmer" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                    <p className="font-black text-2xl" style={{ color: 'var(--color-text)' }}>{provider.rating?.toFixed(1) || '—'}</p>
+                    <p className="text-[10px] mt-1" style={{ color: 'var(--color-text-muted)' }}>Rating</p>
                 </div>
             </div>
 
@@ -146,8 +150,11 @@ export default function ProviderDetail() {
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl text-xs font-semibold transition-all ${activeTab === tab.id ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
-                            }`}
+                        className={`flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl text-xs font-semibold transition-all ${activeTab === tab.id ? 'shadow-sm' : 'hover:opacity-75'}`}
+                        style={activeTab === tab.id
+                            ? { backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)' }
+                            : { color: 'var(--color-text-muted)' }
+                        }
                     >
                         <tab.icon className="h-3.5 w-3.5" />
                         <span className="hidden sm:inline">{tab.label}</span>
@@ -160,20 +167,20 @@ export default function ProviderDetail() {
                 <div className="space-y-3">
                     {services.length === 0 ? (
                         <div className="card-premium p-12 text-center">
-                            <p className="text-zinc-400 text-sm">No services listed yet.</p>
+                            <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>No services listed yet.</p>
                         </div>
                     ) : services.map(s => (
-                        <div key={s.id} className="card-premium p-5 flex items-center justify-between gap-4">
+                        <div key={s.id} className="card-premium p-5 flex items-center justify-between gap-4 hover-lift">
                             <div className="flex-1">
-                                <h3 className="font-inter font-bold text-sm text-zinc-900 dark:text-zinc-100 mb-1">{s.name}</h3>
-                                <div className="flex items-center gap-3 text-xs text-zinc-400">
+                                <h3 className="font-inter font-bold text-sm mb-1" style={{ color: 'var(--color-text)' }}>{s.name}</h3>
+                                <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--color-text-muted)' }}>
                                     <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{s.duration_minutes} min</span>
                                     <span className="capitalize">{s.type}</span>
                                     {s.description && <span className="truncate max-w-[150px]">{s.description}</span>}
                                 </div>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
-                                <span className="font-inter font-black text-xl text-zinc-900 dark:text-zinc-100">${s.price}</span>
+                                <span className="font-inter font-black text-xl" style={{ color: 'var(--color-text)' }}>${s.price}</span>
                                 <button onClick={() => navigate(`/chat?userId=${provider.user_id}`)}
                                     className="inline-flex items-center gap-1 rounded-xl text-xs font-semibold transition-all px-3 py-2"
                                     style={{ backgroundColor: 'var(--color-surface-high)', color: 'var(--color-text)', border: '1px solid var(--color-border)' }}
@@ -203,9 +210,12 @@ export default function ProviderDetail() {
                                 const h = provider.working_hours[d];
                                 const isToday = DAYS[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1] === d;
                                 return (
-                                    <div key={d} className={`flex justify-between py-2.5 px-4 rounded-xl text-sm ${isToday ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900' : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50'}`}>
+                                    <div key={d} className="flex justify-between py-2.5 px-4 rounded-xl text-sm"
+                                        style={isToday
+                                            ? { backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)' }
+                                            : { color: 'var(--color-text-muted)' }}>
                                         <span className="capitalize font-medium">{d}</span>
-                                        <span className={isToday ? 'text-zinc-300 dark:text-zinc-600' : 'text-zinc-400 dark:text-zinc-500'}>
+                                        <span style={isToday ? { color: 'var(--color-on-primary)', opacity: 0.8 } : { color: 'var(--color-text-muted)' }}>
                                             {h?.closed ? 'Closed' : h ? `${h.open} – ${h.close}` : '—'}
                                         </span>
                                     </div>
@@ -213,7 +223,7 @@ export default function ProviderDetail() {
                             })}
                         </div>
                     ) : (
-                        <p className="text-zinc-400 text-sm text-center py-6">Hours not specified.</p>
+                        <p className="text-sm text-center py-6" style={{ color: 'var(--color-text-muted)' }}>Hours not specified.</p>
                     )}
                 </div>
             )}
@@ -245,8 +255,8 @@ export default function ProviderDetail() {
                 <div className="space-y-3">
                     {reviews.length === 0 ? (
                         <div className="card-premium p-12 text-center">
-                            <Star className="h-8 w-8 text-zinc-200 mx-auto mb-3" />
-                            <p className="text-zinc-400 text-sm">No reviews yet. Be the first to book!</p>
+                            <Star className="h-8 w-8 mx-auto mb-3" style={{ color: 'var(--color-border-strong)' }} />
+                            <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>No reviews yet. Be the first to book!</p>
                         </div>
                     ) : reviews.map(r => <ReviewCard key={r.id} review={r} />)}
                 </div>

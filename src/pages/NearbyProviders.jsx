@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { MapPin, List, Map as MapIcon, Navigation } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { List, Map as MapIcon, Navigation } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
+import { toast } from 'sonner';
 import ProviderCard from '../components/ProviderCard';
 import MapView from '../components/MapView';
 import useGeolocation from '../hooks/useGeolocation';
@@ -39,7 +39,7 @@ export default function NearbyProviders() {
         try {
             const [lat, lng] = userLoc;
             const radiusKm = radius[0];
-            
+
             let url = `/api/providers/nearby?lat=${lat}&lng=${lng}&radius_km=${radiusKm}`;
             if (catFilter !== 'all') {
                 url += `&category=${catFilter}`;
@@ -49,7 +49,7 @@ export default function NearbyProviders() {
             if (response.ok) {
                 const data = await response.json();
                 setProviders(data.providers || []);
-                
+
                 // Extract categories from by_category object
                 if (data.by_category) {
                     const categoryList = Object.keys(data.by_category).map(slug => ({
@@ -61,13 +61,14 @@ export default function NearbyProviders() {
             }
         } catch (error) {
             console.error('Failed to fetch nearby providers:', error);
+            toast.error('Failed to load nearby providers');
         } finally {
             setLoading(false);
         }
     };
 
     // Filter and sort providers
-    const filteredProviders = providers.filter(p => 
+    const filteredProviders = providers.filter(p =>
         catFilter === 'all' || p.category_slug === catFilter
     );
 
@@ -82,34 +83,38 @@ export default function NearbyProviders() {
         <div className="pb-20 md:pb-0">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4 fade-in">
                 <div>
-                    <h1 className="font-inter font-bold text-2xl">Nearby Providers</h1>
+                    <h1 className="font-inter font-bold text-2xl" style={{ color: 'var(--color-primary)' }}>Nearby Providers</h1>
                     {permissionDenied ? (
-                        <p className="text-xs text-destructive mt-0.5">Location blocked — please allow access in your browser settings</p>
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--color-warning)' }}>Location blocked — please allow access in your browser settings</p>
                     ) : locError ? (
-                        <p className="text-xs text-muted-foreground mt-0.5">{locError}</p>
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>{locError}</p>
                     ) : locLoading ? (
-                        <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1"><Navigation className="h-3 w-3 animate-pulse" /> Getting your location...</p>
+                        <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color: 'var(--color-text-muted)' }}><Navigation className="h-3 w-3 animate-pulse" /> Getting your location...</p>
                     ) : (
-                        <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1"><Navigation className="h-3 w-3 text-foreground" /> Live location active</p>
+                        <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color: 'var(--color-text-muted)' }}><Navigation className="h-3 w-3" style={{ color: 'var(--color-primary)' }} /> Live location active</p>
                     )}
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
                     <Select value={catFilter} onValueChange={setCatFilter}>
-                        <SelectTrigger className="w-36 h-9 text-xs"><SelectValue placeholder="Category" /></SelectTrigger>
+                        <SelectTrigger className="w-36 h-9 text-xs border-0 rounded-xl card-lightning-subtle">
+                            <SelectValue placeholder="Category" />
+                        </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Categories</SelectItem>
                             {categories.map(c => <SelectItem key={c.slug} value={c.slug}>{c.name}</SelectItem>)}
                         </SelectContent>
                     </Select>
                     <Select value={sortBy} onValueChange={setSortBy}>
-                        <SelectTrigger className="w-28 h-9 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="w-28 h-9 text-xs border-0 rounded-xl card-lightning-subtle">
+                            <SelectValue />
+                        </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="distance">Distance</SelectItem>
                             <SelectItem value="rating">Rating</SelectItem>
                             <SelectItem value="trust">Trust Score</SelectItem>
                         </SelectContent>
                     </Select>
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border" style={{ minWidth: '140px' }}>
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ minWidth: '140px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)' }}>
                         <span className="text-xs" style={{ color: 'var(--color-text-subtle)' }}>{radius[0]}km</span>
                         <Slider
                             value={radius}
@@ -120,27 +125,36 @@ export default function NearbyProviders() {
                             className="flex-1"
                         />
                     </div>
-                    <div className="hidden md:flex border border-border rounded-md overflow-hidden">
+                    <div className="hidden md:flex rounded-md overflow-hidden" style={{ border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)' }}>
                         {['both', 'map', 'list'].map(v => (
-                            <Button key={v} variant={view === v ? 'default' : 'ghost'} size="sm" className="h-9 rounded-none text-xs" onClick={() => setView(v)}>
+                            <button
+                                key={v}
+                                onClick={() => setView(v)}
+                                className={`h-9 px-3 text-xs font-medium transition-colors ${view === v ? '' : 'text-[var(--color-text-muted)] hover:text-[var(--color-primary)]'}`}
+                                style={view === v ? { backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)' } : undefined}
+                            >
                                 {v === 'map' ? <MapIcon className="h-3.5 w-3.5" /> : v === 'list' ? <List className="h-3.5 w-3.5" /> : 'Both'}
-                            </Button>
+                            </button>
                         ))}
                     </div>
                 </div>
             </div>
 
             {loading ? (
-                <div className="flex justify-center py-20"><div className="w-6 h-6 border-2 border-border border-t-foreground rounded-full animate-spin" /></div>
+                <div className="flex justify-center py-20"><div className="w-6 h-6 rounded-full animate-spin" style={{ border: '2px solid var(--color-border)', borderTopColor: 'var(--color-primary)' }} /></div>
             ) : (
                 <div className={`grid gap-4 ${view === 'both' ? 'lg:grid-cols-2' : ''}`}>
                     {(view === 'both' || view === 'map') && (
-                        <MapView providers={sortedProviders} userLocation={userLoc} className="h-[400px] lg:h-[600px]" />
+                        <div className="rounded-2xl overflow-hidden hover-lift shadow-premium" style={{ border: '1px solid var(--color-border)' }}>
+                            <MapView providers={sortedProviders} userLocation={userLoc} className="h-[400px] lg:h-[600px]" />
+                        </div>
                     )}
                     {(view === 'both' || view === 'list') && (
-                        <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                        <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
                             {sortedProviders.length === 0 ? (
-                                <p className="text-center text-muted-foreground py-10">No providers found nearby within {radius[0]}km.</p>
+                                <div className="card-premium p-10 text-center">
+                                    <p style={{ color: 'var(--color-text-muted)' }}>No providers found nearby within {radius[0]}km.</p>
+                                </div>
                             ) : sortedProviders.map(p => (
                                 <ProviderCard key={p.id} provider={p} distance={p.distance_km} />
                             ))}

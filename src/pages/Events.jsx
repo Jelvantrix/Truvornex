@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
     Calendar, MapPin, Ticket, Plus, Search, Users,
     Loader2, Check, Music, Wrench, Zap, Sparkles,
-    UtensilsCrossed, ImageIcon, Building2, Globe, Home, Trees
+    UtensilsCrossed, ImageIcon, Building2, Home, Trees
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/api/supabaseClient';
 
 const CATEGORY_ICONS = {
+    // prettier-ignore
     concert: Music, workshop: Wrench, meetup: Users, sports: Zap,
     festival: Sparkles, exhibition: ImageIcon, food: UtensilsCrossed, other: Calendar,
 };
@@ -137,17 +138,22 @@ export default function Events() {
         <div className="space-y-6 pb-8">
             <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
-                    <h1 className="font-bold text-3xl tracking-tight text-zinc-900 dark:text-white">Local Events</h1>
-                    <p className="text-zinc-400 text-sm mt-0.5">Concerts · workshops · meetups · venue bookings</p>
+                    <h1 className="font-black text-3xl tracking-tight" style={{ color: 'var(--color-primary)', letterSpacing: '-0.03em' }}>Local Events</h1>
+                    <p className="text-sm mt-0.5" style={{ color: 'var(--color-text-subtle)' }}>Concerts · workshops · meetups · venue bookings</p>
                 </div>
                 {user && <Button className="rounded-xl gap-2" onClick={() => setCreateDialog(true)}><Plus className="h-4 w-4" /> Create Event</Button>}
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-1 bg-zinc-100 dark:bg-zinc-900 p-1 rounded-2xl w-fit">
+            <div className="flex gap-1 p-1 rounded-2xl w-fit" style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)' }}>
                 {[['browse', 'Browse'], ['my-tickets', 'My Tickets'], ['venues', 'Venues']].map(([key, label]) => (
                     <button key={key} onClick={() => setTab(key)}
-                        className={`h-8 px-4 rounded-xl text-xs font-semibold transition-all ${tab === key ? 'bg-white dark:bg-zinc-800 shadow-sm text-zinc-900 dark:text-white' : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300'}`}>
+                        className="h-8 px-4 rounded-xl text-xs font-semibold transition-all"
+                        style={tab === key
+                            ? { backgroundColor: 'var(--color-surface)', color: 'var(--color-primary)', boxShadow: 'var(--shadow-sm)' }
+                            : { color: 'var(--color-text-muted)' }}
+                        onMouseEnter={e => { if (tab !== key) e.currentTarget.style.color = 'var(--color-text)'; }}
+                        onMouseLeave={e => { if (tab !== key) e.currentTarget.style.color = 'var(--color-text-muted)'; }}>
                         {label}
                     </button>
                 ))}
@@ -157,8 +163,8 @@ export default function Events() {
                 <>
                     <div className="flex gap-3 flex-wrap">
                         <div className="relative flex-1 min-w-[200px]">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
-                            <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search events" className="pl-9 rounded-xl" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--color-text-subtle)' }} />
+                            <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search events" className="pl-9 rounded-xl input-lightning" />
                         </div>
                         <Select value={catFilter} onValueChange={setCatFilter}>
                             <SelectTrigger className="rounded-xl w-44"><SelectValue /></SelectTrigger>
@@ -176,10 +182,10 @@ export default function Events() {
                             {Array.from({ length: 6 }).map((_, i) => <div key={i} className="skeleton-wave h-64 rounded-2xl" />)}
                         </div>
                     ) : upcoming.length === 0 ? (
-                        <div className="text-center py-16 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl">
-                            <Calendar className="h-10 w-10 mx-auto mb-3 text-zinc-200 dark:text-zinc-700" strokeWidth={1.5} />
-                            <p className="text-zinc-400 font-medium">No upcoming events</p>
-                            {user && <button onClick={() => setCreateDialog(true)} className="mt-3 text-sm font-semibold text-zinc-900 dark:text-white underline underline-offset-2">Be the first to create one</button>}
+                        <div className="text-center py-16 rounded-2xl" style={{ border: '1px dashed var(--color-border-strong)' }}>
+                            <Calendar className="h-10 w-10 mx-auto mb-3" strokeWidth={1.5} style={{ color: 'var(--color-border-strong)' }} />
+                            <p className="font-medium" style={{ color: 'var(--color-text-muted)' }}>No upcoming events</p>
+                            {user && <button onClick={() => setCreateDialog(true)} className="mt-3 text-sm font-semibold underline underline-offset-2" style={{ color: 'var(--color-primary)' }}>Be the first to create one</button>}
                         </div>
                     ) : (
                         <>
@@ -189,31 +195,31 @@ export default function Events() {
                                     const soldOut = (event.tickets_sold || 0) >= (event.total_tickets || 9999);
                                     const pct = Math.min(100, Math.round(((event.tickets_sold || 0) / (event.total_tickets || 1)) * 100));
                                     return (
-                                        <div key={event.id} className="card-premium overflow-hidden group">
-                                            <div className="h-36 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center relative">
+                                        <div key={event.id} className="card-premium overflow-hidden group shimmer hover-lift">
+                                            <div className="h-36 flex items-center justify-center relative" style={{ backgroundColor: 'var(--color-surface-high)' }}>
                                                 {event.image_url
                                                     ? <img src={event.image_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                                                    : <CatIcon className="h-12 w-12 text-zinc-300 dark:text-zinc-600" strokeWidth={1.5} />}
-                                                <span className="absolute top-3 left-3 bg-white/90 dark:bg-zinc-900/90 backdrop-blur text-[10px] font-bold px-2 py-1 rounded-full capitalize">{CATEGORY_LABELS[event.category] || event.category}</span>
-                                                {soldOut && <span className="absolute top-3 right-3 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-full">SOLD OUT</span>}
+                                                    : <CatIcon className="h-12 w-12" strokeWidth={1.5} style={{ color: 'var(--color-text-subtle)' }} />}
+                                                <span className="absolute top-3 left-3 backdrop-blur text-[10px] font-bold px-2 py-1 rounded-full capitalize card-lightning-subtle" style={{ backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}>{CATEGORY_LABELS[event.category] || event.category}</span>
+                                                {soldOut && <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-1 rounded-full" style={{ backgroundColor: 'var(--color-error)', color: 'var(--color-on-primary)' }}>SOLD OUT</span>}
                                             </div>
                                             <div className="p-4">
-                                                <h3 className="font-bold text-sm mb-2 line-clamp-1">{event.title}</h3>
-                                                <div className="space-y-1 text-xs text-zinc-500 dark:text-zinc-400 mb-3">
+                                                <h3 className="font-bold text-sm mb-2 line-clamp-1" style={{ color: 'var(--color-primary)' }}>{event.title}</h3>
+                                                <div className="space-y-1 text-xs mb-3" style={{ color: 'var(--color-text-muted)' }}>
                                                     <div className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" />{event.date}{event.start_time && ` · ${event.start_time}`}</div>
                                                     <div className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" />{event.venue_name}{event.venue_type && ` · ${VENUE_TYPES[event.venue_type] || event.venue_type}`}</div>
                                                     <div className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" />{event.tickets_sold || 0}/{event.total_tickets} tickets sold</div>
                                                 </div>
                                                 {event.bundle_services?.length > 0 && (
                                                     <div className="flex gap-1 flex-wrap mb-3">
-                                                        {event.bundle_services.map(s => <span key={s} className="text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 px-1.5 py-0.5 rounded-full">{s}</span>)}
+                                                        {event.bundle_services.map(s => <span key={s} className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'var(--color-surface-high)', color: 'var(--color-text-muted)' }}>{s}</span>)}
                                                     </div>
                                                 )}
-                                                <div className="h-1 bg-zinc-100 dark:bg-zinc-800 rounded-full mb-3 overflow-hidden">
-                                                    <div className="h-full bg-zinc-900 dark:bg-zinc-100 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                                                <div className="h-1 rounded-full mb-3 overflow-hidden" style={{ backgroundColor: 'var(--color-surface-high)' }}>
+                                                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: 'var(--color-primary)' }} />
                                                 </div>
                                                 <div className="flex items-center justify-between">
-                                                    <span className="font-bold text-sm">{event.is_free || !event.ticket_price ? 'Free' : `$${event.ticket_price}`}</span>
+                                                    <span className="font-bold text-sm" style={{ color: 'var(--color-primary)' }}>{event.is_free || !event.ticket_price ? 'Free' : `$${event.ticket_price}`}</span>
                                                     <Button size="sm" className="rounded-xl h-8 text-xs gap-1.5" disabled={soldOut} onClick={() => setTicketDialog(event)}>
                                                         <Ticket className="h-3.5 w-3.5" />{soldOut ? 'Sold Out' : 'Get Ticket'}
                                                     </Button>
@@ -226,18 +232,18 @@ export default function Events() {
 
                             {past.length > 0 && (
                                 <div className="mt-8">
-                                    <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-4">Past Events</p>
+                                    <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: 'var(--color-text-subtle)' }}>Past Events</p>
                                     <div className="space-y-2">
                                         {past.slice(0, 5).map(event => {
                                             const CatIcon = CATEGORY_ICONS[event.category] || Calendar;
                                             return (
-                                                <div key={event.id} className="flex items-center gap-3 p-3 rounded-xl border border-zinc-100 dark:border-zinc-800 opacity-60">
-                                                    <CatIcon className="h-5 w-5 text-zinc-400 shrink-0" strokeWidth={1.5} />
+                                                <div key={event.id} className="flex items-center gap-3 p-3 rounded-xl opacity-60" style={{ border: '1px solid var(--color-border)' }}>
+                                                    <CatIcon className="h-5 w-5 shrink-0" strokeWidth={1.5} style={{ color: 'var(--color-text-subtle)' }} />
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="text-sm font-medium line-clamp-1">{event.title}</p>
-                                                        <p className="text-xs text-zinc-400">{event.date} · {event.venue_name}</p>
+                                                        <p className="text-sm font-medium line-clamp-1" style={{ color: 'var(--color-text)' }}>{event.title}</p>
+                                                        <p className="text-xs" style={{ color: 'var(--color-text-subtle)' }}>{event.date} · {event.venue_name}</p>
                                                     </div>
-                                                    <span className="text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-500 px-2 py-0.5 rounded-full">Ended</span>
+                                                    <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: 'var(--color-surface-high)', color: 'var(--color-text-muted)' }}>Ended</span>
                                                 </div>
                                             );
                                         })}
@@ -252,27 +258,30 @@ export default function Events() {
             {tab === 'my-tickets' && (
                 <div className="space-y-3">
                     {!user ? (
-                        <div className="card-premium p-10 text-center text-zinc-400">Log in to view your tickets</div>
+                        <div className="card-premium p-10 text-center" style={{ color: 'var(--color-text-muted)' }}>Log in to view your tickets</div>
                     ) : ticketsLoading ? (
                         <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="skeleton-wave h-20 rounded-xl" />)}</div>
                     ) : myTickets.length === 0 ? (
                         <div className="card-premium p-10 text-center">
-                            <Ticket className="h-10 w-10 mx-auto mb-3 text-zinc-200 dark:text-zinc-700" strokeWidth={1.5} />
-                            <p className="text-zinc-400">No tickets yet</p>
-                            <button onClick={() => setTab('browse')} className="mt-3 text-sm font-semibold text-zinc-900 dark:text-white underline underline-offset-2">Browse events</button>
+                            <Ticket className="h-10 w-10 mx-auto mb-3" strokeWidth={1.5} style={{ color: 'var(--color-border-strong)' }} />
+                            <p style={{ color: 'var(--color-text-muted)' }}>No tickets yet</p>
+                            <button onClick={() => setTab('browse')} className="mt-3 text-sm font-semibold underline underline-offset-2" style={{ color: 'var(--color-primary)' }}>Browse events</button>
                         </div>
                     ) : myTickets.map(t => (
-                        <div key={t.id} className="card-premium p-5">
+                        <div key={t.id} className="card-premium p-5 hover-lift">
                             <div className="flex items-start justify-between gap-4">
                                 <div className="flex-1 min-w-0">
-                                    <p className="font-bold truncate">{t.event_title}</p>
-                                    <p className="text-xs text-zinc-400 mt-0.5">Qty: {t.quantity} · Code: <span className="font-mono font-bold">{t.ticket_code}</span></p>
-                                    <p className="text-xs text-zinc-400">{t.total_amount > 0 ? `$${t.total_amount} paid` : 'Free ticket'}</p>
+                                    <p className="font-bold truncate" style={{ color: 'var(--color-primary)' }}>{t.event_title}</p>
+                                    <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>Qty: {t.quantity} · Code: <span className="font-mono font-bold">{t.ticket_code}</span></p>
+                                    <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{t.total_amount > 0 ? `$${t.total_amount} paid` : 'Free ticket'}</p>
                                 </div>
-                                <span className={`text-[10px] font-bold px-2 py-1 rounded-full shrink-0 ${t.status === 'active' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500'}`}>{t.status}</span>
+                                <span className={`text-[10px] font-bold px-2 py-1 rounded-full shrink-0 ${t.status === 'active' ? 'card-success' : ''}`}
+                                    style={t.status === 'active'
+                                        ? {}
+                                        : { backgroundColor: 'var(--color-surface-high)', color: 'var(--color-text-muted)' }}>{t.status}</span>
                             </div>
-                            <div className="mt-3 p-3 bg-zinc-50 dark:bg-zinc-800 rounded-xl">
-                                <p className="text-xs font-mono text-zinc-400 text-center tracking-widest">{t.ticket_code}</p>
+                            <div className="mt-3 p-3 rounded-xl" style={{ backgroundColor: 'var(--color-surface-high)' }}>
+                                <p className="text-xs font-mono text-center tracking-widest" style={{ color: 'var(--color-text-muted)' }}>{t.ticket_code}</p>
                             </div>
                         </div>
                     ))}
@@ -282,19 +291,19 @@ export default function Events() {
             {tab === 'venues' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     {VENUE_DATA.map((v, i) => (
-                        <div key={i} className="card-premium overflow-hidden">
-                            <div className="h-28 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-                                <v.Icon className="h-10 w-10 text-zinc-300 dark:text-zinc-600" strokeWidth={1.5} />
+                        <div key={i} className="card-premium overflow-hidden shimmer hover-lift">
+                            <div className="h-28 flex items-center justify-center" style={{ backgroundColor: 'var(--color-surface-high)' }}>
+                                <v.Icon className="h-10 w-10" strokeWidth={1.5} style={{ color: 'var(--color-text-subtle)' }} />
                             </div>
                             <div className="p-4">
-                                <p className="font-bold text-sm">{v.name}</p>
-                                <p className="text-xs text-zinc-400 mt-0.5">{VENUE_TYPES[v.type]} · Up to {v.cap.toLocaleString()} guests</p>
+                                <p className="font-bold text-sm" style={{ color: 'var(--color-primary)' }}>{v.name}</p>
+                                <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-subtle)' }}>{VENUE_TYPES[v.type]} · Up to {v.cap.toLocaleString()} guests</p>
                                 <div className="flex flex-wrap gap-1 mt-2 mb-3">
-                                    {v.amenities.map(a => <span key={a} className="text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 px-1.5 py-0.5 rounded-full">{a}</span>)}
+                                    {v.amenities.map(a => <span key={a} className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'var(--color-surface-high)', color: 'var(--color-text-muted)' }}>{a}</span>)}
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <span className="font-bold text-sm">{v.price}</span>
-                                    <Button size="sm" className="rounded-xl h-8 text-xs" onClick={() => toast.success("Venue inquiry sent")}>Book Venue</Button>
+                                    <span className="font-bold text-sm" style={{ color: 'var(--color-primary)' }}>{v.price}</span>
+                                    <Button size="sm" className="rounded-xl h-8 text-xs" onClick={() => toast.success('Venue inquiry sent')}>Book Venue</Button>
                                 </div>
                             </div>
                         </div>
@@ -307,8 +316,8 @@ export default function Events() {
                 <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                     <DialogHeader><DialogTitle>Create New Event</DialogTitle></DialogHeader>
                     <div className="space-y-3 pt-1">
-                        <Input placeholder="Event title *" value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} className="rounded-xl" />
-                        <Textarea placeholder="Description" value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} className="rounded-xl resize-none" rows={3} />
+                        <Input placeholder="Event title *" value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} className="rounded-xl input-lightning" />
+                        <Textarea placeholder="Description" value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} className="rounded-xl resize-none input-lightning" rows={3} />
                         <div className="grid grid-cols-2 gap-3">
                             <Select value={form.category} onValueChange={v => setForm(p => ({ ...p, category: v }))}>
                                 <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
@@ -319,27 +328,32 @@ export default function Events() {
                                 <SelectContent>{Object.entries(VENUE_TYPES).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
                             </Select>
                         </div>
-                        <Input placeholder="Venue name *" value={form.venue_name} onChange={e => setForm(p => ({ ...p, venue_name: e.target.value }))} className="rounded-xl" />
-                        <Input placeholder="Address" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} className="rounded-xl" />
+                        <Input placeholder="Venue name *" value={form.venue_name} onChange={e => setForm(p => ({ ...p, venue_name: e.target.value }))} className="rounded-xl input-lightning" />
+                        <Input placeholder="Address" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} className="rounded-xl input-lightning" />
                         <div className="grid grid-cols-3 gap-3">
-                            <Input type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} className="rounded-xl" />
-                            <Input type="time" value={form.start_time} onChange={e => setForm(p => ({ ...p, start_time: e.target.value }))} className="rounded-xl" />
-                            <Input type="time" value={form.end_time} onChange={e => setForm(p => ({ ...p, end_time: e.target.value }))} className="rounded-xl" />
+                            <Input type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} className="rounded-xl input-lightning" />
+                            <Input type="time" value={form.start_time} onChange={e => setForm(p => ({ ...p, start_time: e.target.value }))} className="rounded-xl input-lightning" />
+                            <Input type="time" value={form.end_time} onChange={e => setForm(p => ({ ...p, end_time: e.target.value }))} className="rounded-xl input-lightning" />
                         </div>
-                        <Input placeholder="Organizer name" value={form.organizer_name} onChange={e => setForm(p => ({ ...p, organizer_name: e.target.value }))} className="rounded-xl" />
+                        <Input placeholder="Organizer name" value={form.organizer_name} onChange={e => setForm(p => ({ ...p, organizer_name: e.target.value }))} className="rounded-xl input-lightning" />
                         <div className="grid grid-cols-2 gap-3">
-                            <Input type="number" placeholder="Total tickets" value={form.total_tickets} onChange={e => setForm(p => ({ ...p, total_tickets: Number(e.target.value) }))} className="rounded-xl" />
+                            <Input type="number" placeholder="Total tickets" value={form.total_tickets} onChange={e => setForm(p => ({ ...p, total_tickets: Number(e.target.value) }))} className="rounded-xl input-lightning" />
                             <Input type="number" placeholder="Price (0 = free)" value={form.ticket_price}
-                                onChange={e => setForm(p => ({ ...p, ticket_price: Number(e.target.value), is_free: Number(e.target.value) === 0 }))} className="rounded-xl" />
+                                onChange={e => setForm(p => ({ ...p, ticket_price: Number(e.target.value), is_free: Number(e.target.value) === 0 }))} className="rounded-xl input-lightning" />
                         </div>
                         <div>
-                            <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">Bundle Services</p>
+                            <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--color-text-subtle)' }}>Bundle Services</p>
                             <div className="flex flex-wrap gap-2">
                                 {BUNDLE_SERVICES.map(s => {
                                     const active = form.bundle_services?.includes(s);
                                     return (
                                         <button key={s} onClick={() => toggleBundle(s)}
-                                            className={`flex items-center gap-1.5 h-7 px-3 rounded-xl text-xs font-semibold border transition-all ${active ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-transparent' : 'border-zinc-200 dark:border-zinc-700 text-zinc-500 hover:border-zinc-400'}`}>
+                                            className="flex items-center gap-1.5 h-7 px-3 rounded-xl text-xs font-semibold border transition-all"
+                                            style={active
+                                                ? { backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)', borderColor: 'transparent' }
+                                                : { borderColor: 'var(--color-border-strong)', color: 'var(--color-text-muted)' }}
+                                            onMouseEnter={e => { if (!active) e.currentTarget.style.borderColor = 'var(--color-border-accent)'; }}
+                                            onMouseLeave={e => { if (!active) e.currentTarget.style.borderColor = 'var(--color-border-strong)'; }}>
                                             {active && <Check className="h-3 w-3" />} {s.replace('_', ' ')}
                                         </button>
                                     );
@@ -360,24 +374,24 @@ export default function Events() {
                     <DialogContent className="max-w-sm">
                         <DialogHeader><DialogTitle>Get Ticket</DialogTitle></DialogHeader>
                         <div className="space-y-4 pt-1">
-                            <div className="bg-zinc-50 dark:bg-zinc-900 rounded-2xl p-4">
-                                <p className="font-bold">{ticketDialog.title}</p>
-                                <p className="text-xs text-zinc-400 mt-1 flex items-center gap-1.5"><Calendar className="h-3 w-3" />{ticketDialog.date}{ticketDialog.start_time && ` at ${ticketDialog.start_time}`}</p>
-                                <p className="text-xs text-zinc-400 flex items-center gap-1.5 mt-0.5"><MapPin className="h-3 w-3" />{ticketDialog.venue_name}</p>
+                            <div className="rounded-2xl p-4" style={{ backgroundColor: 'var(--color-surface-high)' }}>
+                                <p className="font-bold" style={{ color: 'var(--color-primary)' }}>{ticketDialog.title}</p>
+                                <p className="text-xs mt-1 flex items-center gap-1.5" style={{ color: 'var(--color-text-muted)' }}><Calendar className="h-3 w-3" />{ticketDialog.date}{ticketDialog.start_time && ` at ${ticketDialog.start_time}`}</p>
+                                <p className="text-xs flex items-center gap-1.5 mt-0.5" style={{ color: 'var(--color-text-muted)' }}><MapPin className="h-3 w-3" />{ticketDialog.venue_name}</p>
                             </div>
                             <div className="flex items-center justify-between">
-                                <p className="font-semibold">Price per ticket</p>
-                                <p className="font-bold text-lg">{ticketDialog.is_free || !ticketDialog.ticket_price ? 'Free' : `$${ticketDialog.ticket_price}`}</p>
+                                <p className="font-semibold" style={{ color: 'var(--color-text)' }}>Price per ticket</p>
+                                <p className="font-bold text-lg" style={{ color: 'var(--color-primary)' }}>{ticketDialog.is_free || !ticketDialog.ticket_price ? 'Free' : `$${ticketDialog.ticket_price}`}</p>
                             </div>
-                            <div className="flex items-center justify-between text-xs text-zinc-400">
+                            <div className="flex items-center justify-between text-xs" style={{ color: 'var(--color-text-muted)' }}>
                                 <span>Available</span>
                                 <span>{Math.max(0, (ticketDialog.total_tickets || 0) - (ticketDialog.tickets_sold || 0))} remaining</span>
                             </div>
                             {ticketDialog.bundle_services?.length > 0 && (
                                 <div>
-                                    <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">Bundled Services</p>
+                                    <p className="text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: 'var(--color-text-subtle)' }}>Bundled Services</p>
                                     <div className="flex flex-wrap gap-1.5">
-                                        {ticketDialog.bundle_services.map(s => <span key={s} className="text-xs bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full">{s}</span>)}
+                                        {ticketDialog.bundle_services.map(s => <span key={s} className="text-xs px-2 py-0.5 rounded-full card-success">{s}</span>)}
                                     </div>
                                 </div>
                             )}

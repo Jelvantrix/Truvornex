@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '@/lib/ThemeContext';
 import { useSimon } from '@/lib/SimonContext';
-import { useAuthModal } from '@/lib/AuthModalContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/api/supabaseClient';
 import useGeolocation from '@/hooks/useGeolocation';
@@ -12,10 +11,10 @@ import {
     Sparkle, Zap, Wrench, Droplets, ChefHat, Truck,
     Heart, GraduationCap, Camera, Monitor, PawPrint, Dumbbell,
     CalendarDays, Leaf, ArrowRight, CheckCircle2, Shield,
-    Navigation, Users, Ticket, Layers, Package, MessageSquare,
+    Navigation, Users, Layers, MessageSquare,
     ThumbsUp, Tag, BarChart3, TrendingUp,
-    Cpu, Brain, TrendingDown, Bell, X, ChevronRight as Chevron,
-    Activity, AlertCircle, Lightbulb, Plus, Send, Loader2, Megaphone, HelpCircle, Briefcase, RefreshCw,
+    Cpu, Bell, X,
+    Activity, Lightbulb, Plus, Send, Loader2,
     Wifi, Clock,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -29,7 +28,7 @@ import { toast } from 'sonner';
 const SIMON_INSIGHTS = [
     { icon: Activity, color: '#22c55e', tag: 'Demand Spike',    msg: 'Cleaning requests in your area are 3× higher than normal this weekend. Book early to lock in your usual provider.' },
     { icon: Lightbulb,color: '#f59e0b', tag: 'Simon Suggests',  msg: 'Based on seasonal patterns, it\'s the ideal week for a home HVAC tune-up — before summer demand peaks.' },
-    { icon: Bell,     color: '#7c6fcd', tag: 'Smart Reminder',  msg: 'It\'s been ~3 weeks since your last deep clean. Simon has Maria R. available Thursday at 10 AM — want to rebook?' },
+    { icon: Bell,     color: '#7c6fcd', tag: 'Smart Reminder', msg: 'It\'s been ~3 weeks since your last deep clean. Simon has Maria R. available Thursday at 10 AM — want to rebook?' },
     { icon: TrendingUp,color:'#06b6d4', tag: 'Bundle Deal',     msg: '4 of your neighbors are booking movers the same week. Join the group bundle and save up to 30% on your move.' },
     { icon: Shield,   color: '#f43f5e', tag: 'Trust Alert',     msg: 'New in your area: Alex P. just became verified with 98% on-time rate. Simon thinks you\'ll love them for plumbing.' },
 ];
@@ -116,7 +115,7 @@ const SimonInsightsWidget = memo(function SimonInsightsWidget() {
                     <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-text-subtle)' }}>
                         Simon AI · Live Intelligence
                     </span>
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse ml-0.5" />
+                    <span className="h-1.5 w-1.5 rounded-full animate-pulse ml-0.5" style={{ backgroundColor: 'var(--color-success)' }} />
                 </div>
                 <button onClick={() => setDismiss(true)}
                     style={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-subtle)', touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', borderRadius: 6 }}>
@@ -239,7 +238,8 @@ const LiveNeighborhoodStats = memo(function LiveNeighborhoodStats({ location }) 
                     <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-text-subtle)' }}>
                         Live Neighborhood Stats
                     </span>
-                    <span className={`h-1.5 w-1.5 rounded-full ${connected ? 'bg-emerald-500' : 'bg-red-500'} ${connected ? 'animate-pulse' : ''} ml-0.5`} />
+                    <span className={`h-1.5 w-1.5 rounded-full ml-0.5 ${connected ? 'animate-pulse' : ''}`}
+                        style={{ backgroundColor: connected ? 'var(--color-success)' : 'var(--color-error)' }} />
                 </div>
                 {liveStats && (
                     <span style={{ fontSize: 9, color: 'var(--color-text-subtle)' }}>
@@ -269,8 +269,8 @@ const LiveNeighborhoodStats = memo(function LiveNeighborhoodStats({ location }) 
                         </div>
                         <div className="text-center p-2 rounded-lg" style={{ backgroundColor: 'var(--color-surface-high)' }}>
                             <div className="flex items-center justify-center gap-1 mb-1">
-                                <Clock style={{ width: 16, height: 16, color: liveStats.surge_active ? '#ef4444' : '#22c55e' }} />
-                                <span className="text-xl font-black" style={{ color: liveStats.surge_active ? '#ef4444' : '#22c55e' }}>
+                                <Clock style={{ width: 16, height: 16, color: liveStats.surge_active ? 'var(--color-error)' : 'var(--color-success)' }} />
+                                <span className="text-xl font-black" style={{ color: liveStats.surge_active ? 'var(--color-error)' : 'var(--color-success)' }}>
                                     {liveStats.demand_index}
                                 </span>
                             </div>
@@ -361,6 +361,20 @@ function SectionHeader({ title, href, label = 'See all' }) {
                 onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-subtle)')}>
                 {label} <ChevronRight style={{ width: 12, height: 12 }} />
             </Link>
+        </div>
+    );
+}
+
+// ── KPI Card ──────────────────────────────────────────────────────────────────
+
+function KpiCard({ icon: Icon, value, label, delay = 0 }) {
+    return (
+        <div className="rounded-2xl p-5 shimmer hover-lift" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+            <div className="h-10 w-10 rounded-xl flex items-center justify-center card-lightning-subtle" style={{ backgroundColor: 'rgba(var(--color-primary),0.12)' }}>
+                <Icon className="h-5 w-5" style={{ color: 'var(--color-primary)' }} />
+            </div>
+            <p className="font-black text-2xl mt-3" style={{ color: 'var(--color-primary)', letterSpacing: '-0.045em' }}>{value}</p>
+            <p className="text-[10px] mt-1" style={{ color: 'var(--color-text-muted)' }}>{label}</p>
         </div>
     );
 }
@@ -545,7 +559,7 @@ export default function Home() {
                 <div className="flex items-center justify-center gap-2 mb-3" style={anim(0.08)}>
                     {['Verified', 'Insured', 'Instant Booking'].map((label) => (
                         <div key={label} className="flex items-center gap-1">
-                            <CheckCircle2 style={{ width: 10, height: 10, color: '#22c55e', flexShrink: 0 }} />
+                            <CheckCircle2 style={{ width: 10, height: 10, color: 'var(--color-success)', flexShrink: 0 }} />
                             <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--color-text-muted)', letterSpacing: '0.01em' }}>{label}</span>
                         </div>
                     ))}
@@ -592,8 +606,8 @@ export default function Home() {
                         onChange={e => setSearch(e.target.value)}
                         onFocus={() => setSearchFocused(true)}
                         onBlur={() => setSearchFocused(false)}
-                        className="w-full outline-none h-10"
-                        variant="lightning-ai"
+                        className="w-full input-lightning outline-none h-10"
+                        variant="lightning"
                         style={{
                             height: 42, paddingLeft: 36, paddingRight: 80, fontSize: 13,
                             backgroundColor: 'var(--color-surface)', color: 'var(--color-text)',
@@ -635,23 +649,17 @@ export default function Home() {
             {/* ── Stats ─────────────────────────────────────────────────── */}
             <section className="grid grid-cols-2 md:grid-cols-4 gap-2 section-lightning">
                 {(liveStats ? [
-                    { value: liveStats.total_providers ? `${Number(liveStats.total_providers).toLocaleString()}+` : '2,400+', label: 'Verified Providers' },
-                    { value: liveStats.avg_rating ? `${liveStats.avg_rating}★` : '4.9★', label: 'Avg Rating' },
-                    { value: liveStats.completed_bookings ? `${Number(liveStats.completed_bookings).toLocaleString()}+` : '15K+', label: 'Jobs Completed' },
-                    { value: liveStats.total_reviews ? `${Number(liveStats.total_reviews).toLocaleString()}+` : '8K+', label: 'Reviews' },
+                    { icon: Users,         value: liveStats.total_providers ? `${Number(liveStats.total_providers).toLocaleString()}+` : '2,400+', label: 'Verified Providers' },
+                    { icon: Star,          value: liveStats.avg_rating ? `${liveStats.avg_rating}★` : '4.9★', label: 'Avg Rating' },
+                    { icon: CheckCircle2,  value: liveStats.completed_bookings ? `${Number(liveStats.completed_bookings).toLocaleString()}+` : '15K+', label: 'Jobs Completed' },
+                    { icon: MessageSquare, value: liveStats.total_reviews ? `${Number(liveStats.total_reviews).toLocaleString()}+` : '8K+', label: 'Reviews' },
                 ] : [
-                    { value: '2,400+', label: 'Verified Providers' },
-                    { value: '4.9★', label: 'Avg Rating' },
-                    { value: '15K+', label: 'Jobs Completed' },
-                    { value: '8K+', label: 'Reviews' },
+                    { icon: Users,         value: '2,400+', label: 'Verified Providers' },
+                    { icon: Star,          value: '4.9★',   label: 'Avg Rating' },
+                    { icon: CheckCircle2,  value: '15K+',   label: 'Jobs Completed' },
+                    { icon: MessageSquare, value: '8K+',    label: 'Reviews' },
                 ]).map((s, i) => (
-                    <div key={s.label} className="rounded-xl relative overflow-hidden shimmer"
-                        style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', padding: '12px 14px', animation: `fadeInUp 0.45s cubic-bezier(0.19,1,0.22,1) ${i * 0.05}s both`, boxShadow: 'var(--shadow-sm)' }}>
-                        <div className="absolute top-0 right-0 w-16 h-16 pointer-events-none"
-                            style={{ background: isDark ? 'radial-gradient(circle at top right,rgba(255,255,255,0.055) 0%,transparent 70%)' : 'radial-gradient(circle at top right,rgba(0,0,0,0.04) 0%,transparent 70%)' }} />
-                        <div className="text-lg font-black mb-0.5" style={{ letterSpacing: '-0.045em', color: 'var(--color-primary)' }}>{s.value}</div>
-                        <div className="text-[10px]" style={{ color: 'var(--color-text-muted)', letterSpacing: '0.005em' }}>{s.label}</div>
-                    </div>
+                    <KpiCard key={s.label} icon={s.icon} value={s.value} label={s.label} delay={i * 0.05} />
                 ))}
             </section>
 
@@ -927,7 +935,7 @@ export default function Home() {
                                     {online && <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: 'var(--color-success)' }} />}
                                     {trust > 0 && (
                                         <span className="absolute bottom-1.5 right-1.5 text-[9px] font-bold px-1 py-0.5 rounded"
-                                            style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', color: '#22c55e' }}>
+                                            style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', color: 'var(--color-success)' }}>
                                             {trust}pts
                                         </span>
                                     )}
@@ -942,7 +950,7 @@ export default function Home() {
                                             {reviews > 0 && <span className="text-[9px]" style={{ color: 'var(--color-text-subtle)' }}>({reviews})</span>}
                                         </div>
                                         {online ? (
-                                            <span className="text-[9px] font-semibold" style={{ color: '#22c55e' }}>Available</span>
+                                            <span className="text-[9px] font-semibold" style={{ color: 'var(--color-success)' }}>Available</span>
                                         ) : (
                                             <span className="text-[9px]" style={{ color: 'var(--color-text-subtle)' }}>Offline</span>
                                         )}
@@ -1035,8 +1043,8 @@ export default function Home() {
                 <DialogContent className="max-w-md">
                     <DialogHeader><DialogTitle>New Community Post</DialogTitle></DialogHeader>
                     <div className="space-y-3 pt-1">
-                        <Input placeholder="Title *" value={postForm.title} onChange={e => setPostForm(p => ({ ...p, title: e.target.value }))} className="rounded-xl" variant="lightning-ai" />
-                        <Textarea placeholder="What's on your mind? *" value={postForm.body} onChange={e => setPostForm(p => ({ ...p, body: e.target.value }))} className="rounded-xl resize-none" rows={3} variant="lightning-ai" />
+                        <Input placeholder="Title *" value={postForm.title} onChange={e => setPostForm(p => ({ ...p, title: e.target.value }))} className="rounded-xl input-lightning" variant="lightning" />
+                        <Textarea placeholder="What's on your mind? *" value={postForm.body} onChange={e => setPostForm(p => ({ ...p, body: e.target.value }))} className="rounded-xl resize-none input-lightning" rows={3} variant="lightning" />
                         <div className="flex gap-2">
                             <Button variant="outline" className="flex-1 h-10 rounded-xl" onClick={() => setPostDialog(false)}>Cancel</Button>
                             <Button className="flex-1 h-10 rounded-xl gap-2" onClick={createPost} disabled={posting}>

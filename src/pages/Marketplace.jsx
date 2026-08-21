@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-    ShoppingBag, Plus, Search, Filter, Tag, Package, Star,
-    Eye, MessageCircle, MapPin, ChevronDown, X, Loader2,
-    CheckCircle, Clock, AlertCircle, Heart, Share2, Edit2,
+    ShoppingBag, Plus, Search, Filter, Tag, Package,
+    Eye, MessageCircle, X, Loader2,
+    CheckCircle,
     Smartphone, Home, Car, Shirt, Book, Utensils, Wrench,
     Baby, Dumbbell, Sofa, Camera, Music, Zap, Grid3x3, List
 } from 'lucide-react';
@@ -219,6 +219,18 @@ export default function Marketplace() {
 
     const hasFilters = condition || minPrice || maxPrice;
 
+    const activeListings = listings.filter(l => l.status === 'active').length;
+    const totalViews = listings.reduce((s, l) => s + (l.views || 0), 0);
+    const priceValues = listings.map(l => parseFloat(l.price_pkr) || 0).filter(Boolean);
+    const avgPrice = priceValues.length ? priceValues.reduce((a, b) => a + b, 0) / priceValues.length : 0;
+
+    const kpis = [
+        { label: 'Total Listings', value: listings.length, icon: Package },
+        { label: 'Active Now', value: activeListings, icon: CheckCircle },
+        { label: 'Total Views', value: totalViews, icon: Eye },
+        { label: 'Avg Price', value: avgPrice ? `PKR ${Math.round(avgPrice).toLocaleString()}` : '—', icon: Tag },
+    ];
+
     return (
         <div style={{ maxWidth: 1000, margin: '0 auto' }}>
             {/* Header */}
@@ -237,6 +249,21 @@ export default function Marketplace() {
                         <Plus className="h-3.5 w-3.5" /> Sell Item
                     </button>
                 )}
+            </div>
+
+            {/* KPI Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+                {kpis.map(k => (
+                    <div key={k.label} className="rounded-2xl p-5 shimmer"
+                        style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                        <div className="h-10 w-10 rounded-xl flex items-center justify-center card-lightning-subtle"
+                            style={{ backgroundColor: 'rgba(var(--color-primary),0.12)' }}>
+                            <k.icon className="h-5 w-5" style={{ color: 'var(--color-primary)' }} />
+                        </div>
+                        <p className="font-black text-2xl mt-3" style={{ color: 'var(--color-primary)' }}>{k.value}</p>
+                        <p className="text-[10px] mt-1" style={{ color: 'var(--color-text-muted)' }}>{k.label}</p>
+                    </div>
+                ))}
             </div>
 
             {/* Tabs */}
@@ -262,7 +289,7 @@ export default function Marketplace() {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5" style={{ color: 'var(--color-text-subtle)' }} />
                             <input value={searchInput} onChange={e => setSearchInput(e.target.value)}
                                 placeholder="Search listings…"
-                                className="w-full pl-9 pr-3 py-2.5 rounded-xl text-sm outline-none"
+                                className="input-lightning w-full pl-9 pr-3 py-2.5 rounded-xl text-sm outline-none"
                                 style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }} />
                         </div>
                         <button type="submit" className="px-3 py-2 rounded-xl"
@@ -270,10 +297,10 @@ export default function Marketplace() {
                             <Search className="h-4 w-4" />
                         </button>
                         <button type="button" onClick={() => setFilterOpen(f => !f)}
-                            className="px-3 py-2 rounded-xl flex items-center gap-1.5 text-xs font-semibold relative"
+                            className="px-3 py-2 rounded-xl flex items-center justify-center gap-1.5 text-xs font-semibold relative"
                             style={{ backgroundColor: hasFilters ? 'var(--color-primary)' : 'var(--color-surface)', color: hasFilters ? 'var(--color-on-primary)' : 'var(--color-text-muted)', border: `1px solid ${hasFilters ? 'transparent' : 'var(--color-border)'}` }}>
                             <Filter className="h-3.5 w-3.5" /> Filter
-                            {hasFilters && <span className="h-2 w-2 rounded-full bg-red-400 absolute -top-0.5 -right-0.5" />}
+                            {hasFilters && <span className="h-2 w-2 rounded-full absolute -top-0.5 -right-0.5" style={{ backgroundColor: 'rgba(var(--color-error),1)' }} />}
                         </button>
                         <div className="flex items-center gap-1">
                             <button type="button" onClick={() => setViewMode('grid')}
@@ -291,7 +318,7 @@ export default function Marketplace() {
 
                     {/* Filter Panel */}
                     {filterOpen && (
-                        <div className="rounded-2xl p-4 mb-4" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+                        <div className="rounded-2xl p-4 mb-4 card-premium shimmer">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                 <div>
                                     <label className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--color-text-subtle)' }}>Condition</label>
@@ -308,13 +335,13 @@ export default function Marketplace() {
                                 <div>
                                     <label className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--color-text-subtle)' }}>Min Price (PKR)</label>
                                     <input type="number" value={minPrice} onChange={e => setMinPrice(e.target.value)} placeholder="0"
-                                        className="w-full px-3 py-2 rounded-xl text-sm outline-none"
+                                        className="input-lightning w-full px-3 py-2 rounded-xl text-sm outline-none"
                                         style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }} />
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--color-text-subtle)' }}>Max Price (PKR)</label>
                                     <input type="number" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} placeholder="Any"
-                                        className="w-full px-3 py-2 rounded-xl text-sm outline-none"
+                                        className="input-lightning w-full px-3 py-2 rounded-xl text-sm outline-none"
                                         style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }} />
                                 </div>
                             </div>
@@ -368,7 +395,7 @@ export default function Marketplace() {
                                 const condCfg = CONDITION_LABELS[listing.condition] || { label: 'Good', color: '#fcd34d' };
                                 return (
                                     <button key={listing.id} onClick={() => openListing(listing.id)}
-                                        className="rounded-2xl overflow-hidden text-left transition-all hover:scale-[1.01]"
+                                        className="rounded-2xl overflow-hidden text-left transition-all hover:scale-[1.01] hover-lift"
                                         style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
                                         <div className="h-36 flex items-center justify-center relative"
                                             style={{ backgroundColor: (cat.color || '#666') + '10' }}>
@@ -410,7 +437,7 @@ export default function Marketplace() {
                                 const condCfg = CONDITION_LABELS[listing.condition] || { label: 'Good', color: '#fcd34d' };
                                 return (
                                     <button key={listing.id} onClick={() => openListing(listing.id)}
-                                        className="w-full rounded-2xl p-4 text-left flex items-center gap-4 transition-all"
+                                        className="w-full rounded-2xl p-4 text-left flex items-center gap-4 transition-all hover-lift"
                                         style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
                                         <div className="h-16 w-16 rounded-xl flex items-center justify-center shrink-0 overflow-hidden"
                                             style={{ backgroundColor: (cat.color || '#666') + '10' }}>
@@ -464,7 +491,7 @@ export default function Marketplace() {
                                 </button>
                             </div>
                             {myListings.length === 0 ? (
-                                <div className="text-center py-10 rounded-2xl" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+                                <div className="text-center py-10 rounded-2xl card-premium">
                                     <ShoppingBag className="h-8 w-8 mx-auto mb-2 opacity-20" style={{ color: 'var(--color-text)' }} />
                                     <p className="text-sm" style={{ color: 'var(--color-text-subtle)' }}>No listings yet</p>
                                     <button onClick={() => setCreateOpen(true)} className="text-xs mt-2 font-semibold" style={{ color: 'var(--color-primary)' }}>Start selling →</button>
@@ -475,8 +502,7 @@ export default function Marketplace() {
                                         const cat = getCatInfo(l.category);
                                         const condCfg = CONDITION_LABELS[l.condition] || { label: 'Good', color: '#fcd34d' };
                                         return (
-                                            <div key={l.id} className="rounded-2xl p-4 flex items-center gap-3"
-                                                style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+                                            <div key={l.id} className="rounded-2xl p-4 flex items-center gap-3 card-premium hover-lift">
                                                 <div className="h-14 w-14 rounded-xl flex items-center justify-center shrink-0"
                                                     style={{ backgroundColor: (cat.color || '#666') + '10' }}>
                                                     <cat.icon className="h-6 w-6 opacity-40" style={{ color: cat.color || '#666' }} />
@@ -512,8 +538,7 @@ export default function Marketplace() {
                                     <h2 className="font-bold text-sm mb-3" style={{ color: 'var(--color-text)' }}>Orders & Offers ({myOrders.length})</h2>
                                     <div className="space-y-2">
                                         {myOrders.map(o => (
-                                            <div key={o.id} className="rounded-2xl p-4 flex items-center gap-3"
-                                                style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+                                            <div key={o.id} className="rounded-2xl p-4 flex items-center gap-3 card-premium hover-lift">
                                                 <Package className="h-5 w-5 shrink-0" style={{ color: 'var(--color-text-subtle)' }} />
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-xs font-semibold truncate" style={{ color: 'var(--color-text)' }}>{o.title}</p>
@@ -541,8 +566,7 @@ export default function Marketplace() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
                     style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
                     onClick={e => e.target === e.currentTarget && setSelected(null)}>
-                    <div className="rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
-                        style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+                    <div className="rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto card-premium">
                         {/* Image */}
                         <div className="h-48 flex items-center justify-center relative"
                             style={{ backgroundColor: (getCatInfo(selected.category).color || '#666') + '10' }}>
@@ -604,7 +628,7 @@ export default function Marketplace() {
                                         <label className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--color-text-subtle)' }}>Message to seller (optional)</label>
                                         <textarea value={offerMsg} onChange={e => setOfferMsg(e.target.value)}
                                             placeholder="I'm interested in this item…" rows={2}
-                                            className="w-full px-3 py-2 rounded-xl text-sm outline-none resize-none"
+                                            className="input-lightning w-full px-3 py-2 rounded-xl text-sm outline-none resize-none"
                                             style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }} />
                                     </div>
                                     <div className="flex gap-2">
@@ -644,8 +668,7 @@ export default function Marketplace() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
                     style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
                     onClick={e => e.target === e.currentTarget && setCreateOpen(false)}>
-                    <div className="rounded-2xl p-5 w-full max-w-md shadow-2xl overflow-y-auto max-h-[90vh]"
-                        style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+                    <div className="rounded-2xl p-5 w-full max-w-md shadow-2xl overflow-y-auto max-h-[90vh] card-premium">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="font-bold text-base" style={{ color: 'var(--color-text)' }}>Post a Listing</h2>
                             <button onClick={() => setCreateOpen(false)} style={{ color: 'var(--color-text-subtle)' }}><X className="h-4 w-4" /></button>
@@ -655,14 +678,14 @@ export default function Marketplace() {
                                 <label className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--color-text-subtle)' }}>Title *</label>
                                 <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                                     placeholder="What are you selling?"
-                                    className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+                                    className="input-lightning w-full px-3 py-2.5 rounded-xl text-sm outline-none"
                                     style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }} />
                             </div>
                             <div>
                                 <label className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--color-text-subtle)' }}>Description</label>
                                 <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                                     placeholder="Describe the item, any defects, reason for selling…" rows={3}
-                                    className="w-full px-3 py-2.5 rounded-xl text-sm outline-none resize-none"
+                                    className="input-lightning w-full px-3 py-2.5 rounded-xl text-sm outline-none resize-none"
                                     style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }} />
                             </div>
                             <div className="grid grid-cols-2 gap-2">
@@ -670,13 +693,13 @@ export default function Marketplace() {
                                     <label className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--color-text-subtle)' }}>Price (PKR) *</label>
                                     <input type="number" min={0} value={form.price_pkr} onChange={e => setForm(f => ({ ...f, price_pkr: e.target.value }))}
                                         placeholder="0"
-                                        className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+                                        className="input-lightning w-full px-3 py-2.5 rounded-xl text-sm outline-none"
                                         style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }} />
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--color-text-subtle)' }}>Category</label>
                                     <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-                                        className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+                                        className="input-lightning w-full px-3 py-2.5 rounded-xl text-sm outline-none"
                                         style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}>
                                         {CATEGORIES.filter(c => c.key !== 'all').map(c => (
                                             <option key={c.key} value={c.key}>{c.label}</option>
@@ -711,7 +734,7 @@ export default function Marketplace() {
                                 <label className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--color-text-subtle)' }}>Contact Phone</label>
                                 <input value={form.contact_phone} onChange={e => setForm(f => ({ ...f, contact_phone: e.target.value }))}
                                     placeholder="03XX-XXXXXXX"
-                                    className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+                                    className="input-lightning w-full px-3 py-2.5 rounded-xl text-sm outline-none"
                                     style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }} />
                             </div>
                         </div>

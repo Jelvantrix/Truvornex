@@ -3,6 +3,7 @@ import { notificationService } from '@/lib/platform/notificationService';
 import { Bell, CheckCheck, ExternalLink, AlertCircle, CalendarCheck, Star, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const TYPE_ICON = {
     booking_confirmed: CalendarCheck,
@@ -17,9 +18,9 @@ const TYPE_ICON = {
 };
 
 const PRIORITY_BADGE_STYLE = {
-    urgent:  { backgroundColor: 'var(--color-error-bg)',   color: 'var(--color-error)'   },
-    high:    { backgroundColor: 'rgba(251,146,60,0.12)',   color: '#f97316'               },
-    normal:  { backgroundColor: 'var(--color-surface-high)', color: 'var(--color-text-muted)' },
+    urgent:  { backgroundColor: 'rgba(var(--color-error),0.08)', color: 'var(--color-error)' },
+    high:    { backgroundColor: 'rgba(251,146,60,0.12)',       color: '#f97316' },
+    normal:  { backgroundColor: 'var(--color-surface-high)',    color: 'var(--color-text-muted)' },
     low:     { backgroundColor: 'var(--color-surface-highest)', color: 'var(--color-text-subtle)' },
 };
 
@@ -34,13 +35,22 @@ export default function NotificationCenter() {
     const loadNotifications = async (_email) => { setNotifications([]); setLoading(false); };
 
     const markRead = async (id) => {
-        await notificationService.markRead(id);
-        setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+        try {
+            await notificationService.markRead(id);
+            setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+        } catch (err) {
+            toast.error('Could not mark notification as read');
+        }
     };
 
     const markAllRead = async () => {
-        await notificationService.markAllRead(userEmail);
-        setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+        try {
+            await notificationService.markAllRead(userEmail);
+            setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+            toast.success('All notifications marked as read');
+        } catch (err) {
+            toast.error('Could not mark all notifications as read');
+        }
     };
 
     const filtered = filter === 'unread' ? notifications.filter(n => !n.is_read) : notifications;
@@ -84,7 +94,8 @@ export default function NotificationCenter() {
             </div>
 
             {filtered.length === 0 ? (
-                <div className="card-premium p-16 text-center">
+                <div className="rounded-2xl p-6 shimmer card-lightning-subtle text-center"
+                    style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
                     <Bell className="h-10 w-10 mx-auto mb-3" style={{ color: 'var(--color-text-subtle)' }} />
                     <h3 className="font-semibold mb-1" style={{ color: 'var(--color-primary)' }}>You're all caught up!</h3>
                     <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>No {filter === 'unread' ? 'unread ' : ''}notifications yet.</p>
@@ -96,8 +107,13 @@ export default function NotificationCenter() {
                         const badgeStyle = PRIORITY_BADGE_STYLE[n.priority] || PRIORITY_BADGE_STYLE.normal;
                         return (
                             <div key={n.id}
-                                className="card-premium p-4 flex items-start gap-3 cursor-pointer transition-all"
-                                style={{ borderLeft: !n.is_read ? '3px solid var(--color-primary)' : undefined }}
+                                className="rounded-2xl p-4 shimmer card-lightning-subtle hover-lift flex items-start gap-3 cursor-pointer transition-all"
+                                style={{
+                                    backgroundColor: 'var(--color-surface)',
+                                    border: !n.is_read ? '1px solid var(--color-border-strong)' : '1px solid var(--color-border)',
+                                    borderLeft: !n.is_read ? '3px solid var(--color-primary)' : undefined,
+                                    boxShadow: 'var(--shadow-sm)',
+                                }}
                                 onClick={() => !n.is_read && markRead(n.id)}>
                                 <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0"
                                     style={{

@@ -4,8 +4,9 @@ import { chatOpenRouter as chatDeepSeek, isConfigured } from '@/lib/openrouter';
 import {
     Send, Sparkles, User, Loader2, MapPin, CalendarDays,
     Zap, TrendingUp, Search, Clock, ArrowRight, Cpu, RefreshCw,
-    Lightbulb, BarChart2, ShieldCheck, Package, MessageSquare, Bot
+    Lightbulb, BarChart2, ShieldCheck, Package, MessageSquare
 } from 'lucide-react';
+import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 
 const QUICK_PROMPTS = [
@@ -33,11 +34,12 @@ const MODES = [
 function TypingIndicator() {
     return (
         <div className="flex gap-3 items-start">
-            <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0"
-                style={{ background: 'linear-gradient(135deg, rgba(124,111,205,0.2), rgba(168,85,247,0.15))', border: '1px solid rgba(124,111,205,0.3)' }}>
-                <Sparkles className="h-3.5 w-3.5" style={{ color: '#7c6fcd' }} />
+            <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0 card-lightning-subtle"
+                style={{ background: 'linear-gradient(135deg, rgba(124,111,205,0.2), rgba(168,85,247,0.15))', border: '1px solid var(--color-border)' }}>
+                <Sparkles className="h-3.5 w-3.5" style={{ color: 'var(--color-primary)' }} />
             </div>
-            <div className="rounded-2xl rounded-tl-sm px-4 py-3" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+            <div className="rounded-2xl rounded-tl-sm px-4 py-3 card-lightning-subtle"
+                style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
                 <div className="flex items-center gap-1">
                     {[0, 1, 2].map(i => (
                         <div key={i} className="h-1.5 w-1.5 rounded-full"
@@ -53,13 +55,13 @@ function MessageBubble({ msg }) {
     const isUser = msg.role === 'user';
     return (
         <div className={`flex gap-2.5 items-start ${isUser ? 'flex-row-reverse' : ''}`}>
-            <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0"
+            <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0 card-lightning-subtle"
                 style={isUser
                     ? { background: 'var(--color-primary)', border: '1px solid var(--color-primary)' }
-                    : { background: 'linear-gradient(135deg, rgba(124,111,205,0.2), rgba(168,85,247,0.15))', border: '1px solid rgba(124,111,205,0.3)' }}>
+                    : { background: 'linear-gradient(135deg, rgba(124,111,205,0.2), rgba(168,85,247,0.15))', border: '1px solid var(--color-border)' }}>
                 {isUser
                     ? <User className="h-3.5 w-3.5" style={{ color: 'var(--color-on-primary)' }} strokeWidth={2} />
-                    : <Sparkles className="h-3.5 w-3.5" style={{ color: '#7c6fcd' }} strokeWidth={1.8} />}
+                    : <Sparkles className="h-3.5 w-3.5" style={{ color: 'var(--color-primary)' }} strokeWidth={1.8} />}
             </div>
             <div className="max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-relaxed"
                 style={isUser
@@ -145,6 +147,7 @@ Be precise, data-driven, use markdown formatting with headers and bullet points.
                 role: 'assistant',
                 content: '**Simon needs OpenRouter to be configured.** Your `OPENROUTER_API_KEY` secret powers this AI. Add it in your environment variables and restart the server.',
             }]);
+            toast.warning('Simon needs OpenRouter to be configured');
             setLoading(false);
             return;
         }
@@ -164,33 +167,35 @@ Be precise, data-driven, use markdown formatting with headers and bullet points.
             setMessages(prev => [...prev, { role: 'assistant', content: full }]);
         } catch (e) {
             setMessages(prev => [...prev, { role: 'assistant', content: `**Simon encountered an error:** ${e.message}` }]);
+            toast.error('Simon encountered an error');
         }
         setLoading(false);
         setStreamingMsg('');
     };
 
     const hasMessages = messages.length > 0;
+    const configured = isConfigured();
 
     return (
         <div className="flex flex-col h-[calc(100vh-7rem)] max-h-[900px]">
             {/* Header */}
             <div className="flex items-center justify-between mb-4 shrink-0">
                 <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-xl flex items-center justify-center"
-                        style={{ background: 'linear-gradient(135deg, rgba(124,111,205,0.2), rgba(168,85,247,0.15))', border: '1px solid rgba(124,111,205,0.3)' }}>
-                        <Sparkles className="h-4 w-4" style={{ color: '#7c6fcd' }} />
+                    <div className="h-9 w-9 rounded-xl flex items-center justify-center card-lightning-subtle"
+                        style={{ background: 'linear-gradient(135deg, rgba(124,111,205,0.2), rgba(168,85,247,0.15))', border: '1px solid var(--color-border)' }}>
+                        <Sparkles className="h-4 w-4" style={{ color: 'var(--color-primary)' }} />
                     </div>
                     <div>
                         <div className="flex items-center gap-2">
                             <h1 className="font-bold text-base tracking-tight" style={{ color: 'var(--color-primary)' }}>Simon AI</h1>
-                            <span className="text-[9px] px-1.5 py-0.5 rounded-md tracking-wider uppercase"
+                            <span className="text-[9px] px-1.5 py-0.5 rounded-md tracking-wider uppercase card-lightning-subtle"
                                 style={{ border: '1px solid var(--color-border)', color: 'var(--color-text-subtle)' }}>
-                                {isConfigured() ? 'OpenRouter' : 'Demo'}
+                                {configured ? 'OpenRouter' : 'Demo'}
                             </span>
                             <span className="flex items-center gap-1">
-                                <span className={`h-1.5 w-1.5 rounded-full ${isConfigured() ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-400'}`} />
+                                <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: configured ? 'var(--color-success)' : 'var(--color-text-subtle)' }} />
                                 <span className="text-[9px]" style={{ color: 'var(--color-text-subtle)' }}>
-                                    {isConfigured() ? 'Online' : 'Demo'}
+                                    {configured ? 'Online' : 'Demo'}
                                 </span>
                             </span>
                         </div>
@@ -201,7 +206,7 @@ Be precise, data-driven, use markdown formatting with headers and bullet points.
                 </div>
                 {hasMessages && (
                     <button onClick={() => setMessages([])}
-                        className="h-8 w-8 rounded-lg flex items-center justify-center transition-colors"
+                        className="h-8 w-8 rounded-lg flex items-center justify-center card-lightning-subtle transition-colors"
                         style={{ border: '1px solid var(--color-border)', color: 'var(--color-text-subtle)' }}>
                         <RefreshCw className="h-3.5 w-3.5" />
                     </button>
@@ -212,7 +217,7 @@ Be precise, data-driven, use markdown formatting with headers and bullet points.
             <div className="flex gap-1 mb-4 overflow-x-auto pb-0.5 shrink-0">
                 {MODES.map(m => (
                     <button key={m.id} onClick={() => setMode(m.id)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all card-lightning-subtle"
                         style={mode === m.id
                             ? { background: 'var(--color-primary)', color: 'var(--color-on-primary)', border: '1px solid var(--color-primary)' }
                             : { background: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
@@ -225,26 +230,25 @@ Be precise, data-driven, use markdown formatting with headers and bullet points.
             <div className="flex-1 overflow-y-auto space-y-3.5 pr-0.5 min-h-0">
                 {!hasMessages && (
                     <div className="text-center pt-8 pb-4">
-                        <div className="h-14 w-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                            style={{ background: 'linear-gradient(135deg, rgba(124,111,205,0.2), rgba(168,85,247,0.15))', border: '1px solid rgba(124,111,205,0.3)' }}>
-                            <Sparkles className="h-6 w-6" style={{ color: '#7c6fcd' }} />
+                        <div className="h-14 w-14 rounded-2xl flex items-center justify-center mx-auto mb-4 card-lightning-subtle"
+                            style={{ background: 'linear-gradient(135deg, rgba(124,111,205,0.2), rgba(168,85,247,0.15))', border: '1px solid var(--color-border)' }}>
+                            <Sparkles className="h-6 w-6" style={{ color: 'var(--color-primary)' }} />
                         </div>
                         <h2 className="font-bold text-base mb-1" style={{ color: 'var(--color-primary)' }}>Hello, I'm Simon.</h2>
                         <p className="text-xs max-w-xs mx-auto mb-5 leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
-                            {isConfigured()
+                            {configured
                                 ? 'Powered by OpenRouter · Ask me anything about services, providers, or your neighborhood'
                                 : 'Demo mode — add OPENROUTER_API_KEY to unlock full AI'}
                         </p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-2xl mx-auto text-left">
                             {QUICK_PROMPTS.map(({ icon: Icon, label, prompt }) => (
                                 <button key={label} onClick={() => send(prompt)} disabled={!contextLoaded}
-                                    className="flex items-center gap-2.5 p-3 rounded-xl transition-all text-left group"
-                                    style={{ border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text-muted)' }}>
-                                    <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0 transition-all"
+                                    className="flex items-center gap-2.5 p-3 rounded-xl transition-all text-left group card-premium shimmer hover-lift">
+                                    <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0 card-lightning-subtle"
                                         style={{ border: '1px solid var(--color-border)', background: 'var(--color-surface-high)' }}>
-                                        <Icon className="h-3.5 w-3.5" style={{ color: 'var(--color-text-subtle)' }} strokeWidth={1.8} />
+                                        <Icon className="h-3.5 w-3.5" style={{ color: 'var(--color-primary)' }} strokeWidth={1.8} />
                                     </div>
-                                    <span className="text-xs font-medium">{label}</span>
+                                    <span className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>{label}</span>
                                     <ArrowRight className="h-3 w-3 ml-auto shrink-0" style={{ color: 'var(--color-border-strong)' }} strokeWidth={1.8} />
                                 </button>
                             ))}
@@ -255,11 +259,11 @@ Be precise, data-driven, use markdown formatting with headers and bullet points.
                 {loading && !streamingMsg && <TypingIndicator />}
                 {loading && streamingMsg && (
                     <div className="flex gap-2.5 items-start">
-                        <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0"
-                            style={{ background: 'linear-gradient(135deg, rgba(124,111,205,0.2), rgba(168,85,247,0.15))', border: '1px solid rgba(124,111,205,0.3)' }}>
-                            <Sparkles className="h-3.5 w-3.5" style={{ color: '#7c6fcd' }} />
+                        <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0 card-lightning-subtle"
+                            style={{ background: 'linear-gradient(135deg, rgba(124,111,205,0.2), rgba(168,85,247,0.15))', border: '1px solid var(--color-border)' }}>
+                            <Sparkles className="h-3.5 w-3.5" style={{ color: 'var(--color-primary)' }} />
                         </div>
-                        <div className="max-w-[82%] rounded-2xl rounded-tl-sm px-4 py-3 text-sm leading-relaxed"
+                        <div className="max-w-[82%] rounded-2xl rounded-tl-sm px-4 py-3 text-sm leading-relaxed card-lightning-subtle"
                             style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}>
                             <ReactMarkdown className="prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
                                 {streamingMsg}
@@ -273,13 +277,13 @@ Be precise, data-driven, use markdown formatting with headers and bullet points.
 
             {/* Input */}
             <div className="shrink-0 pt-3">
-                <div className="flex items-center gap-2 rounded-xl p-2 transition-all"
+                <div className="flex items-center gap-2 rounded-xl p-2 transition-all card-lightning-subtle"
                     style={{ border: '1px solid var(--color-border)', background: 'var(--color-surface)' }}>
                     <input
                         ref={inputRef}
                         type="text"
                         placeholder={contextLoaded ? 'Ask Simon anything…' : 'Loading context…'}
-                        className="flex-1 h-9 bg-transparent text-sm focus:outline-none px-2"
+                        className="input-lightning flex-1 h-9 bg-transparent text-sm focus:outline-none px-2"
                         style={{ color: 'var(--color-primary)' }}
                         value={input}
                         onChange={e => setInput(e.target.value)}
@@ -287,7 +291,7 @@ Be precise, data-driven, use markdown formatting with headers and bullet points.
                         disabled={!contextLoaded}
                     />
                     <button onClick={() => send()} disabled={!input.trim() || loading || !contextLoaded}
-                        className="h-9 w-9 rounded-lg flex items-center justify-center transition-all disabled:opacity-40"
+                        className="h-9 w-9 rounded-lg flex items-center justify-center btn-lightning-subtle transition-all disabled:opacity-40"
                         style={{ background: 'var(--color-primary)', color: 'var(--color-on-primary)' }}>
                         {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" strokeWidth={2} />}
                     </button>

@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
     Wallet, ArrowUpRight, ArrowDownLeft, Send, Plus, Download,
-    CreditCard, Clock, CheckCircle, XCircle, Loader2, Search,
-    TrendingUp, Shield, RefreshCw, Phone, Building2, ChevronRight
+    CreditCard, Clock, CheckCircle, Loader2, Search, Shield, RefreshCw, Phone, Building2
 } from 'lucide-react';
 import { toast } from 'sonner';
 

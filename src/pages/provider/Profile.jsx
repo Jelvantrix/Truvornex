@@ -1,39 +1,45 @@
-import { useState, useEffect, useRef } from 'react';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
+import { useState, useRef } from 'react';
+import { Camera, MapPin, Navigation, CheckCircle2, Image, X, Info, Loader2, Shield, Star, MapPin as MapPinIcon, Save, Upload, Building2, AlertTriangle, Settings } from 'lucide-react';
 import { toast } from 'sonner';
-import { LogOut, Camera, MapPin, Navigation, CheckCircle, Image, X, Info } from 'lucide-react';
-
-const ALL_ICONS = ['scissors', 'stethoscope', 'wrench', 'zap', 'book', 'truck', 'dumbbell', 'utensils', 'shopping', 'droplets', 'paintbrush', 'car'];
-
-const labelStyle = { fontSize: 12, fontWeight: 600, color: 'var(--color-text-muted)', display: 'block', marginBottom: 6 };
-const sectionTitle = { fontWeight: 700, fontSize: 14, color: 'var(--color-primary)', marginBottom: 4 };
-
-const btnBase = {
-    border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600,
-    transition: 'opacity 0.15s', borderRadius: 12, display: 'inline-flex', alignItems: 'center', gap: 6,
-};
 
 export default function ProviderProfile() {
     const [provider, setProvider] = useState(null);
-    const [form, setForm] = useState({});
+    const [form, setForm] = useState({ 
+        business_name: '', 
+        description: '', 
+        phone: '', 
+        address: '', 
+        city: '', 
+        latitude: 40.7128, 
+        longitude: -74.0060, 
+        service_radius_km: 10,
+        category_slugs: [],
+        chat_enabled: false,
+        logo_url: '',
+        cover_image: '',
+        verified: false
+    });
     const [saving, setSaving] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const [creating, setCreating] = useState(false);
-    const [categories, setCategories] = useState([]);
+    const [creating, setCreating] = useState(true);
+    const [categories] = useState([
+        { slug: 'cleaning', name: 'Cleaning' },
+        { slug: 'hvac', name: 'HVAC' },
+        { slug: 'landscaping', name: 'Landscaping' },
+        { slug: 'plumbing', name: 'Plumbing' },
+        { slug: 'electrical', name: 'Electrical' },
+        { slug: 'windows', name: 'Windows' },
+        { slug: 'appliance', name: 'Appliance Repair' },
+        { slug: 'handyman', name: 'Handyman' },
+        { slug: 'painting', name: 'Painting' },
+        { slug: 'flooring', name: 'Flooring' },
+        { slug: 'roofing', name: 'Roofing' },
+        { slug: 'pest-control', name: 'Pest Control' },
+    ]);
     const [uploadingLogo, setUploadingLogo] = useState(false);
     const [uploadingCover, setUploadingCover] = useState(false);
     const [geoLoading, setGeoLoading] = useState(false);
     const logoRef = useRef();
     const coverRef = useRef();
-
-    useEffect(() => {
-        setCreating(true);
-        setForm({ user_email: '', business_name: '', description: '', phone: '', address: '', city: '', latitude: 40.7128, longitude: -74.006, category_slugs: [], chat_enabled: false });
-        setCategories([]);
-        setLoading(false);
-    }, []);
 
     const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
@@ -42,11 +48,8 @@ export default function ProviderProfile() {
         set('category_slugs', current.includes(slug) ? current.filter(s => s !== slug) : [...current, slug]);
     };
 
-    const uploadImage = async () => {
-        toast.error('Image upload requires Supabase storage to be configured.');
-    };
-
     const getMyLocation = () => {
+        if (!navigator.geolocation) { toast.error('Geolocation not supported'); return; }
         setGeoLoading(true);
         navigator.geolocation.getCurrentPosition(
             async (pos) => {
@@ -70,9 +73,11 @@ export default function ProviderProfile() {
 
     const save = async () => {
         if (!form.business_name) { toast.error('Business name is required'); return; }
+        if ((form.category_slugs || []).length === 0) { toast.error('Select at least one category'); return; }
         setSaving(true);
+        await new Promise(r => setTimeout(r, 600));
         if (creating) {
-            setProvider({ ...form });
+            setProvider({ ...form, status: 'pending', created_at: new Date().toISOString() });
             setCreating(false);
             toast.success('Profile created! Pending admin approval.');
         } else {
@@ -82,35 +87,71 @@ export default function ProviderProfile() {
         setSaving(false);
     };
 
-    if (loading) return (
-        <div className="space-y-4 max-w-2xl">
-            <div className="skeleton-wave h-48 rounded-2xl" />
-            <div className="skeleton-wave h-12 rounded-xl" />
-            <div className="skeleton-wave h-12 rounded-xl" />
-        </div>
-    );
+    const handleImageUpload = async (file, field, setUploading) => {
+        setUploading(true);
+        await new Promise(r => setTimeout(r, 1000));
+        const reader = new FileReader();
+        reader.onload = (e) => { set(field, e.target.result); setUploading(false); toast.success(`${field === 'logo_url' ? 'Logo' : 'Cover photo'} uploaded!`); };
+        reader.readAsDataURL(file);
+    };
 
     return (
-        <div className="max-w-2xl pb-8 space-y-4">
-            <div>
-                <h1 className="font-black text-xl tracking-tight" style={{ color: 'var(--color-primary)', letterSpacing: '-0.03em' }}>
-                    {creating ? 'Set Up Your Business' : 'Business Profile'}
-                </h1>
-                <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>Fill in your details to start receiving bookings</p>
+        <div className="space-y-6 max-w-4xl">
+            {/* Header */}
+            <div className="flex items-start justify-between flex-wrap gap-3">
+                <div>
+                    <h1 className="font-black text-2xl tracking-tight" style={{ color: 'var(--color-primary)', letterSpacing: '-0.03em' }}>
+                        {creating ? 'Set Up Your Business' : 'Business Profile'}
+                    </h1>
+                    <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                        {creating ? 'Fill in your details to start receiving bookings' : 'Manage your business profile and settings'}
+                    </p>
+                </div>
             </div>
 
+            {/* Creating Info Banner */}
             {creating && (
-                <div className="flex items-start gap-3 rounded-xl p-3.5"
-                    style={{ backgroundColor: 'var(--color-info-bg)', border: '1px solid rgba(147,197,253,0.2)' }}>
-                    <Info className="h-4 w-4 shrink-0 mt-0.5" style={{ color: 'var(--color-info)' }} />
-                    <p className="text-xs" style={{ color: 'var(--color-info)' }}>
-                        <strong>Welcome!</strong> Once submitted, our team will review and approve your profile within 24 hours.
-                    </p>
+                <div className="rounded-xl p-4 shimmer" style={{ backgroundColor: 'rgba(var(--color-info),0.08)', border: '1px solid rgba(var(--color-info),0.2)' }}>
+                    <div className="flex items-start gap-3">
+                        <Info className="h-5 w-5 shrink-0 mt-0.5" style={{ color: 'var(--color-info)' }} />
+                        <div>
+                            <p className="font-semibold text-sm" style={{ color: 'var(--color-info)' }}>Welcome to Truvornex!</p>
+                            <p className="text-sm mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
+                                Once submitted, our team will review and approve your profile within 24 hours. 
+                                You can edit your profile anytime after approval.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             )}
 
-            {/* Cover Photo + Logo */}
-            <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+            {/* Stats Overview (when not creating) */}
+            {!creating && provider && (
+                <div className="rounded-2xl p-5 shimmer" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        {[
+                            { label: 'Status', value: provider.status || 'pending', icon: Shield, color: provider.status === 'approved' ? 'var(--color-success)' : 'var(--color-warning)', bg: provider.status === 'approved' ? 'rgba(var(--color-success),0.12)' : 'rgba(var(--color-warning),0.12)' },
+                            { label: 'Categories', value: (form.category_slugs || []).length, icon: Building2, color: 'var(--color-primary)', bg: 'rgba(var(--color-primary),0.12)' },
+                            { label: 'Service Radius', value: `${form.service_radius_km || 10} km`, icon: MapPinIcon, color: 'var(--color-accent)', bg: 'rgba(var(--color-accent),0.12)' },
+                            { label: 'Chat', value: form.chat_enabled ? 'Enabled' : 'Disabled', icon: Star, color: form.chat_enabled ? 'var(--color-success)' : 'var(--color-text-muted)', bg: form.chat_enabled ? 'rgba(var(--color-success),0.12)' : 'rgba(var(--color-text-muted),0.12)' },
+                        ].map((stat, i) => (
+                            <div key={i} className="rounded-xl p-4 text-center shimmer"
+                                style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-xs)' }}>
+                                <div className="h-10 w-10 rounded-xl flex items-center justify-center mx-auto mb-2 card-lightning-subtle"
+                                    style={{ backgroundColor: stat.bg }}>
+                                    <stat.icon className="h-5 w-5" style={{ color: stat.color }} />
+                                </div>
+                                <p className="font-black text-2xl" style={{ color: 'var(--color-primary)', letterSpacing: '-0.04em' }}>{stat.value}</p>
+                                <p className="text-[10px] mt-1" style={{ color: 'var(--color-text-muted)' }}>{stat.label}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Cover Photo & Logo */}
+            <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                {/* Cover Photo */}
                 <div className="relative h-36 cursor-pointer group"
                     style={{ backgroundColor: 'var(--color-surface-high)' }}
                     onClick={() => coverRef.current.click()}>
@@ -125,13 +166,15 @@ export default function ProviderProfile() {
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                         style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
                         {uploadingCover
-                            ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            : <Camera className="h-6 w-6 text-white" />}
+                            ? <Loader2 className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            : <Upload className="h-6 w-6 text-white" />}
+                        <span className="sr-only">{uploadingCover ? 'Uploading...' : 'Upload cover photo'}</span>
                     </div>
                     <input ref={coverRef} type="file" accept="image/*" className="hidden"
-                        onChange={e => e.target.files[0] && uploadImage(e.target.files[0], 'cover_image', setUploadingCover)} />
+                        onChange={e => e.target.files[0] && handleImageUpload(e.target.files[0], 'cover_image', setUploadingCover)} />
                 </div>
 
+                {/* Logo */}
                 <div className="px-5 pb-5 -mt-9 relative">
                     <div className="relative inline-block">
                         <div className="h-18 w-18 rounded-2xl overflow-hidden cursor-pointer group"
@@ -149,87 +192,237 @@ export default function ProviderProfile() {
                             <div className="absolute inset-0 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                                 style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
                                 {uploadingLogo
-                                    ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                    : <Camera className="h-4 w-4 text-white" />}
+                                    ? <Loader2 className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    : <Upload className="h-4 w-4 text-white" />}
                             </div>
                         </div>
                         {form.verified && (
-                            <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-blue-500 flex items-center justify-center"
-                                style={{ border: '2px solid var(--color-surface)' }}>
-                                <CheckCircle className="h-3 w-3 text-white" />
+                            <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full flex items-center justify-center"
+                                style={{ backgroundColor: 'var(--color-success)', border: '2px solid var(--color-surface)' }}>
+                                <CheckCircle2 className="h-3 w-3" style={{ color: 'var(--color-on-primary)' }} />
                             </div>
                         )}
                         <input ref={logoRef} type="file" accept="image/*" className="hidden"
-                            onChange={e => e.target.files[0] && uploadImage(e.target.files[0], 'logo_url', setUploadingLogo)} />
+                            onChange={e => e.target.files[0] && handleImageUpload(e.target.files[0], 'logo_url', setUploadingLogo)} />
+                    </div>
+                    
+                    <div className="mt-4 ml-24 flex items-center gap-4">
+                        <h2 className="font-bold text-xl" style={{ color: 'var(--color-primary)' }}>{form.business_name || 'Your Business Name'}</h2>
+                        <button className="h-9 px-4 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all"
+                            style={{ backgroundColor: 'transparent', color: 'var(--color-text-muted)', border: '1px solid var(--color-border-strong)' }}
+                            onClick={() => logoRef.current.click()}
+                            disabled={uploadingLogo}
+                            onMouseEnter={e => { if (!uploadingLogo) { e.currentTarget.style.borderColor = 'var(--color-border-accent)'; e.currentTarget.style.color = 'var(--color-text)'; }}}
+                            onMouseLeave={e => { if (!uploadingLogo) { e.currentTarget.style.borderColor = 'var(--color-border-strong)'; e.currentTarget.style.color = 'var(--color-text-muted)'; }}}>
+                            <Camera className="h-3.5 w-3.5" />
+                            Update Logo
+                        </button>
+                        <button className="h-9 px-4 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all"
+                            style={{ backgroundColor: 'transparent', color: 'var(--color-text-muted)', border: '1px solid var(--color-border-strong)' }}
+                            onClick={() => coverRef.current.click()}
+                            disabled={uploadingCover}
+                            onMouseEnter={e => { if (!uploadingCover) { e.currentTarget.style.borderColor = 'var(--color-border-accent)'; e.currentTarget.style.color = 'var(--color-text)'; }}}
+                            onMouseLeave={e => { if (!uploadingCover) { e.currentTarget.style.borderColor = 'var(--color-border-strong)'; e.currentTarget.style.color = 'var(--color-text-muted)'; }}} >
+                            <Image className="h-3.5 w-3.5" />
+                            Update Cover
+                        </button>
                     </div>
                 </div>
             </div>
 
             {/* Business Info */}
-            <div className="rounded-xl p-5 space-y-4" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
-                <h2 style={sectionTitle}>Business Information</h2>
-                {[
-                    { label: 'Business Name *', key: 'business_name', placeholder: "e.g. John's Plumbing" },
-                    { label: 'Phone Number', key: 'phone', placeholder: '+1 (555) 000-0000', type: 'tel' },
-                ].map(f => (
-                    <div key={f.key}>
-                        <label style={labelStyle}>{f.label}</label>
-                        <Input type={f.type || 'text'} value={form[f.key] || ''} onChange={e => set(f.key, e.target.value)}
-                            placeholder={f.placeholder} className="h-10 rounded-xl" />
+            <div className="rounded-2xl p-6 shimmer" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                <h2 className="font-semibold mb-5" style={{ color: 'var(--color-primary)' }}>Business Information</h2>
+                <div className="space-y-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className="text-[10px] font-bold uppercase tracking-widest mb-2 block" style={{ color: 'var(--color-text-subtle)' }}>Business Name *</label>
+                            <input 
+                                type="text" 
+                                value={form.business_name}
+                                onChange={e => set('business_name', e.target.value)}
+                                placeholder="e.g. John's Plumbing"
+                                className="input-lightning w-full px-4 py-3.5 rounded-xl text-base outline-none"
+                                style={{ 
+                                    backgroundColor: 'var(--color-surface)',
+                                    border: '1px solid var(--color-border-strong)',
+                                    color: 'var(--color-text)',
+                                    fontSize: '15px',
+                                    fontFamily: 'Inter,sans-serif',
+                                }}
+                                onFocus={e => (e.currentTarget.style.borderColor = 'var(--color-border-accent)')}
+                                onBlur={e => (e.currentTarget.style.borderColor = 'var(--color-border-strong)')}
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="text-[10px] font-bold uppercase tracking-widest mb-2 block" style={{ color: 'var(--color-text-subtle)' }}>Phone Number</label>
+                            <input 
+                                type="tel" 
+                                value={form.phone}
+                                onChange={e => set('phone', e.target.value)}
+                                placeholder="+1 (555) 000-0000"
+                                className="input-lightning w-full px-4 py-3.5 rounded-xl text-base outline-none"
+                                style={{ 
+                                    backgroundColor: 'var(--color-surface)',
+                                    border: '1px solid var(--color-border-strong)',
+                                    color: 'var(--color-text)',
+                                    fontSize: '15px',
+                                    fontFamily: 'Inter,sans-serif',
+                                }}
+                                onFocus={e => (e.currentTarget.style.borderColor = 'var(--color-border-accent)')}
+                                onBlur={e => (e.currentTarget.style.borderColor = 'var(--color-border-strong)')}
+                            />
+                        </div>
                     </div>
-                ))}
-                <div>
-                    <label style={labelStyle}>Description</label>
-                    <Textarea value={form.description || ''} onChange={e => set('description', e.target.value)}
-                        placeholder="Tell customers what makes your business special..."
-                        className="resize-none rounded-xl" rows={3} />
+                    
+                    <div>
+                        <label className="text-[10px] font-bold uppercase tracking-widest mb-2 block" style={{ color: 'var(--color-text-subtle)' }}>Description</label>
+                        <textarea 
+                            value={form.description}
+                            onChange={e => set('description', e.target.value)}
+                            placeholder="Tell customers what makes your business special — services offered, years of experience, specialties..."
+                            rows={4}
+                            className="input-lightning w-full px-4 py-3.5 rounded-xl resize-none outline-none"
+                            style={{ 
+                                backgroundColor: 'var(--color-surface)',
+                                border: '1px solid var(--color-border-strong)',
+                                color: 'var(--color-text)',
+                                fontSize: '14px',
+                                fontFamily: 'Inter,sans-serif',
+                                lineHeight: 1.6
+                            }}
+                            onFocus={e => (e.currentTarget.style.borderColor = 'var(--color-border-accent)')}
+                            onBlur={e => (e.currentTarget.style.borderColor = 'var(--color-border-strong)')} 
+                        />
+                    </div>
                 </div>
             </div>
 
             {/* Location */}
-            <div className="rounded-xl p-5 space-y-4" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
-                <div className="flex items-center justify-between">
-                    <h2 style={sectionTitle}>Location</h2>
-                    <button style={{ ...btnBase, backgroundColor: 'var(--color-surface-high)', color: 'var(--color-text-muted)', border: '1px solid var(--color-border-strong)', padding: '5px 10px', fontSize: 11 }}
-                        onClick={getMyLocation} disabled={geoLoading}
-                        onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
-                        onMouseLeave={e => (e.currentTarget.style.opacity = '1')}>
-                        <Navigation className={`h-3 w-3 ${geoLoading ? 'animate-spin' : ''}`} />
-                        {geoLoading ? 'Getting…' : 'Use My Location'}
+            <div className="rounded-2xl p-6 shimmer" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                <div className="flex items-center justify-between mb-5">
+                    <h2 className="font-semibold" style={{ color: 'var(--color-primary)' }}>Service Location</h2>
+                    <button 
+                        className="h-9 px-4 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all"
+                        style={{ backgroundColor: 'transparent', color: 'var(--color-text-muted)', border: '1px solid var(--color-border-strong)' }}
+                        onClick={getMyLocation} 
+                        disabled={geoLoading}
+                        onMouseEnter={e => { if (!geoLoading) { e.currentTarget.style.borderColor = 'var(--color-border-accent)'; e.currentTarget.style.color = 'var(--color-text)'; }}}
+                        onMouseLeave={e => { if (!geoLoading) { e.currentTarget.style.borderColor = 'var(--color-border-strong)'; e.currentTarget.style.color = 'var(--color-text-muted)'; }}} >
+                        <Navigation className={`h-3.5 w-3.5 ${geoLoading ? 'animate-spin' : ''}`} />
+                        {geoLoading ? 'Getting...' : 'Use My Location'}
                     </button>
                 </div>
-                {[
-                    { label: 'Address *', key: 'address', placeholder: '123 Main Street' },
-                    { label: 'City', key: 'city', placeholder: 'New York' },
-                ].map(f => (
-                    <div key={f.key}>
-                        <label style={labelStyle}>{f.label}</label>
-                        <Input value={form[f.key] || ''} onChange={e => set(f.key, e.target.value)}
-                            placeholder={f.placeholder} className="h-10 rounded-xl" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label className="text-[10px] font-bold uppercase tracking-widest mb-2 block" style={{ color: 'var(--color-text-subtle)' }}>Address *</label>
+                        <input 
+                            type="text" 
+                            value={form.address}
+                            onChange={e => set('address', e.target.value)}
+                            placeholder="123 Main Street"
+                            className="input-lightning w-full px-4 py-3.5 rounded-xl text-base outline-none"
+                            style={{ 
+                                backgroundColor: 'var(--color-surface)',
+                                border: '1px solid var(--color-border-strong)',
+                                color: 'var(--color-text)',
+                                fontSize: '15px',
+                                fontFamily: 'Inter,sans-serif',
+                            }}
+                            onFocus={e => (e.currentTarget.style.borderColor = 'var(--color-border-accent)')}
+                            onBlur={e => (e.currentTarget.style.borderColor = 'var(--color-border-strong)')}
+                            required
+                        />
                     </div>
-                ))}
-                <div className="grid grid-cols-2 gap-3">
-                    {[{ label: 'Latitude', key: 'latitude' }, { label: 'Longitude', key: 'longitude' }].map(f => (
-                        <div key={f.key}>
-                            <label style={labelStyle} className="flex items-center gap-1">
-                                <MapPin className="h-3 w-3" />{f.label}
-                            </label>
-                            <Input type="number" step="any" value={form[f.key] || ''} onChange={e => set(f.key, Number(e.target.value))}
-                                className="h-10 rounded-xl font-mono text-xs" />
-                        </div>
-                    ))}
+                    <div>
+                        <label className="text-[10px] font-bold uppercase tracking-widest mb-2 block" style={{ color: 'var(--color-text-subtle)' }}>City</label>
+                        <input 
+                            type="text" 
+                            value={form.city}
+                            onChange={e => set('city', e.target.value)}
+                            placeholder="New York"
+                            className="input-lightning w-full px-4 py-3.5 rounded-xl text-base outline-none"
+                            style={{ 
+                                backgroundColor: 'var(--color-surface)',
+                                border: '1px solid var(--color-border-strong)',
+                                color: 'var(--color-text)',
+                                fontSize: '15px',
+                                fontFamily: 'Inter,sans-serif',
+                            }}
+                            onFocus={e => (e.currentTarget.style.borderColor = 'var(--color-border-accent)')}
+                            onBlur={e => (e.currentTarget.style.borderColor = 'var(--color-border-strong)')}
+                        />
+                    </div>
                 </div>
-                <div>
-                    <label style={labelStyle}>Service Radius (km)</label>
-                    <Input type="number" value={form.service_radius_km || 10} onChange={e => set('service_radius_km', Number(e.target.value))}
-                        className="h-10 rounded-xl" />
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                    <div>
+                        <label className="text-[10px] font-bold uppercase tracking-widest mb-2 block flex items-center gap-1" style={{ color: 'var(--color-text-subtle)' }}>
+                            <MapPin className="h-3 w-3" /> Latitude
+                        </label>
+                        <input 
+                            type="number" step="any" 
+                            value={form.latitude}
+                            onChange={e => set('latitude', Number(e.target.value))}
+                            className="input-lightning w-full px-4 py-3.5 rounded-xl text-base outline-none font-mono text-sm"
+                            style={{ 
+                                backgroundColor: 'var(--color-surface)',
+                                border: '1px solid var(--color-border-strong)',
+                                color: 'var(--color-text)',
+                                fontSize: '14px',
+                                fontFamily: 'monospace',
+                            }}
+                            onFocus={e => (e.currentTarget.style.borderColor = 'var(--color-border-accent)')}
+                            onBlur={e => (e.currentTarget.style.borderColor = 'var(--color-border-strong)')}
+                        />
+                    </div>
+                    <div>
+                        <label className="text-[10px] font-bold uppercase tracking-widest mb-2 block flex items-center gap-1" style={{ color: 'var(--color-text-subtle)' }}>
+                            <MapPin className="h-3 w-3" /> Longitude
+                        </label>
+                        <input 
+                            type="number" step="any" 
+                            value={form.longitude}
+                            onChange={e => set('longitude', Number(e.target.value))}
+                            className="input-lightning w-full px-4 py-3.5 rounded-xl text-base outline-none font-mono text-sm"
+                            style={{ 
+                                backgroundColor: 'var(--color-surface)',
+                                border: '1px solid var(--color-border-strong)',
+                                color: 'var(--color-text)',
+                                fontSize: '14px',
+                                fontFamily: 'monospace',
+                            }}
+                            onFocus={e => (e.currentTarget.style.borderColor = 'var(--color-border-accent)')}
+                            onBlur={e => (e.currentTarget.style.borderColor = 'var(--color-border-strong)')}
+                        />
+                    </div>
+                </div>
+
+                <div className="mt-4">
+                    <label className="text-[10px] font-bold uppercase tracking-widest mb-2 block" style={{ color: 'var(--color-text-subtle)' }}>Service Radius (km)</label>
+                    <input 
+                        type="number" min="1" max="100"
+                        value={form.service_radius_km}
+                        onChange={e => set('service_radius_km', Math.max(1, Math.min(100, Number(e.target.value)) || 10))}
+                        className="input-lightning w-full max-w-xs px-4 py-3.5 rounded-xl text-base outline-none"
+                        style={{ 
+                            backgroundColor: 'var(--color-surface)',
+                            border: '1px solid var(--color-border-strong)',
+                            color: 'var(--color-text)',
+                            fontSize: '15px',
+                            fontFamily: 'Inter,sans-serif',
+                        }}
+                        onFocus={e => (e.currentTarget.style.borderColor = 'var(--color-border-accent)')}
+                        onBlur={e => (e.currentTarget.style.borderColor = 'var(--color-border-strong)')}
+                    />
                 </div>
             </div>
 
             {/* Service Categories */}
-            <div className="rounded-xl p-5" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
-                <h2 style={sectionTitle}>Service Categories</h2>
-                <p className="text-xs mb-4" style={{ color: 'var(--color-text-muted)' }}>
+            <div className="rounded-2xl p-6 shimmer" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                <h2 className="font-semibold mb-2" style={{ color: 'var(--color-primary)' }}>Service Categories</h2>
+                <p className="text-sm mb-5" style={{ color: 'var(--color-text-muted)' }}>
                     Select all categories that describe your services. This determines where you appear in searches.
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -237,16 +430,15 @@ export default function ProviderProfile() {
                         const sel = (form.category_slugs || []).includes(c.slug);
                         return (
                             <button key={c.slug} onClick={() => toggleCategory(c.slug)}
+                                className="px-4 py-2 rounded-xl text-sm font-medium transition-all card-lightning-subtle whitespace-nowrap"
                                 style={{
-                                    ...btnBase,
-                                    padding: '6px 12px', fontSize: 12,
                                     backgroundColor: sel ? 'var(--color-primary)' : 'var(--color-surface-high)',
                                     color: sel ? 'var(--color-on-primary)' : 'var(--color-text-muted)',
-                                    border: `1px solid ${sel ? 'transparent' : 'var(--color-border-strong)'}`,
+                                    border: `1px solid ${sel ? 'transparent' : 'var(--color-border)'}`,
                                 }}
-                                onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
-                                onMouseLeave={e => (e.currentTarget.style.opacity = '1')}>
-                                {sel && <span>✓</span>}
+                                onMouseEnter={e => { if (!sel) { e.currentTarget.style.backgroundColor = 'var(--color-surface)'; e.currentTarget.style.borderColor = 'var(--color-border-strong)'; }}}
+                                onMouseLeave={e => { if (!sel) { e.currentTarget.style.backgroundColor = 'var(--color-surface-high)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}} >
+                                {sel && <CheckCircle2 className="h-3.5 w-3.5 mr-1" />}
                                 {c.name}
                             </button>
                         );
@@ -254,47 +446,111 @@ export default function ProviderProfile() {
                 </div>
                 {(form.category_slugs || []).length === 0 && (
                     <div className="flex items-start gap-2 rounded-xl p-3 mt-3"
-                        style={{ backgroundColor: 'var(--color-warning-bg)', border: '1px solid rgba(252,211,77,0.2)' }}>
-                        <span className="text-xs" style={{ color: 'var(--color-warning)' }}>
-                            ⚠️ Please select at least one category so customers can find you.
+                        style={{ backgroundColor: 'rgba(var(--color-warning),0.1)', border: '1px solid rgba(var(--color-warning),0.2)' }}>
+                        <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" style={{ color: 'var(--color-warning)' }} />
+                        <span className="text-sm" style={{ color: 'var(--color-warning)' }}>
+                            Please select at least one category so customers can find you.
                         </span>
                     </div>
                 )}
             </div>
 
             {/* Settings */}
-            <div className="rounded-xl p-5" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
-                <h2 style={{ ...sectionTitle, marginBottom: 16 }}>Settings</h2>
-                <div className="flex items-center justify-between gap-4">
+            <div className="rounded-2xl p-6 shimmer" style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                <h2 className="font-semibold mb-5" style={{ color: 'var(--color-primary)' }}>Settings</h2>
+                <div className="flex items-center justify-between gap-4 py-3">
                     <div>
-                        <p className="text-sm font-semibold" style={{ color: 'var(--color-primary)' }}>Enable Chat</p>
-                        <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>Allow customers to message you directly</p>
+                        <p className="font-medium text-sm" style={{ color: 'var(--color-primary)' }}>Enable Chat</p>
+                        <p className="text-[10px] mt-0.5" style={{ color: 'var(--color-text-muted)' }}>Allow customers to message you directly through the platform</p>
                     </div>
-                    <Switch checked={form.chat_enabled || false} onCheckedChange={v => set('chat_enabled', v)} />
+                    <button 
+                        role="switch" 
+                        aria-checked={form.chat_enabled}
+                        onClick={() => set('chat_enabled', !form.chat_enabled)}
+                        className={`relative h-6 w-11 rounded-full flex items-center transition-all ${
+                            form.chat_enabled ? 'bg-primary' : 'bg-surface-high border border-border'
+                        }`}
+                        style={{
+                            backgroundColor: form.chat_enabled ? 'var(--color-primary)' : 'var(--color-surface-high)',
+                            border: form.chat_enabled ? 'none' : '1px solid var(--color-border)',
+                        }}
+                    >
+                        <span className={`absolute h-4 w-4 rounded-full transition-transform flex items-center justify-center ${form.chat_enabled ? 'translate-x-6' : 'translate-x-1'}`}
+                            style={{
+                                backgroundColor: form.chat_enabled ? 'var(--color-on-primary)' : 'var(--color-text-muted)',
+                                border: form.chat_enabled ? 'none' : '1px solid var(--color-border)',
+                            }}>
+                            {form.chat_enabled && <CheckCircle2 className="h-2.5 w-2.5" />}
+                        </span>
+                    </button>
                 </div>
             </div>
 
-            {/* Status banner */}
-            {provider && provider.status !== 'approved' && (() => {
-                const cfg = provider.status === 'pending'
-                    ? { bg: 'var(--color-warning-bg)', border: 'rgba(252,211,77,0.2)', color: 'var(--color-warning)', text: '⏳ Your profile is pending admin review. Usually takes 24 hours.' }
-                    : provider.status === 'rejected'
-                    ? { bg: 'var(--color-error-bg)', border: 'rgba(252,165,165,0.2)', color: 'var(--color-error)', text: '❌ Your profile was rejected. Please update and save again.' }
-                    : { bg: 'var(--color-surface-high)', border: 'var(--color-border)', color: 'var(--color-text-muted)', text: '⚠️ Your profile is suspended. Contact support.' };
-                return (
-                    <div className="rounded-xl p-3.5" style={{ backgroundColor: cfg.bg, border: `1px solid ${cfg.border}` }}>
-                        <p className="text-xs font-medium" style={{ color: cfg.color }}>{cfg.text}</p>
+            {/* Status Banner */}
+            {provider && provider.status !== 'approved' && (
+                <div className="rounded-xl p-4 shimmer" style={{ 
+                    backgroundColor: provider.status === 'pending' ? 'rgba(var(--color-warning),0.08)' : 
+                                   provider.status === 'rejected' ? 'rgba(var(--color-error),0.08)' : 
+                                   'var(--color-surface-high)',
+                    border: `1px solid ${provider.status === 'pending' ? 'rgba(var(--color-warning),0.2)' : 
+                                  provider.status === 'rejected' ? 'rgba(var(--color-error),0.2)' : 
+                                  'var(--color-border)'}`
+                }}>
+                    <div className="flex items-start gap-3">
+                        <div className={`h-5 w-5 shrink-0 mt-0.5 ${provider.status === 'pending' ? 'text-warning' : provider.status === 'rejected' ? 'text-error' : 'text-text-muted'}`}>
+                            {provider.status === 'pending' && <Loader2 className="animate-spin" />}
+                            {provider.status === 'rejected' && <X />}
+                            {provider.status === 'suspended' && <Shield />}
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium" style={{ 
+                                color: provider.status === 'pending' ? 'var(--color-warning)' : 
+                                       provider.status === 'rejected' ? 'var(--color-error)' : 
+                                       'var(--color-text-muted)' 
+                            }}>
+                                {provider.status === 'pending' && '⏳ Profile Under Review'}
+                                {provider.status === 'rejected' && '❌ Profile Rejected'}
+                                {provider.status === 'suspended' && '⚠️ Profile Suspended'}
+                            </p>
+                            <p className="text-sm mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
+                                {provider.status === 'pending' && 'Your profile is pending admin review. Usually takes 24 hours.'}
+                                {provider.status === 'rejected' && 'Your profile was rejected. Please update your information and save again.'}
+                                {provider.status === 'suspended' && 'Your profile is suspended. Contact support for assistance.'}
+                            </p>
+                        </div>
                     </div>
-                );
-            })()}
+                </div>
+            )}
 
-            {/* Submit */}
-            <button className="w-full h-11 rounded-xl text-sm font-semibold transition-all"
-                style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)', border: 'none', cursor: (saving || !form.business_name) ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: (saving || !form.business_name) ? 0.5 : 1 }}
-                onClick={save} disabled={saving || !form.business_name}
-                onMouseEnter={e => { if (!saving && form.business_name) e.currentTarget.style.opacity = '0.88'; }}
-                onMouseLeave={e => { if (!saving && form.business_name) e.currentTarget.style.opacity = '1'; }}>
-                {saving ? 'Saving…' : creating ? '✓ Submit Profile' : '✓ Save Changes'}
+            {/* Submit Button */}
+            <button className="w-full h-12 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all"
+                style={{ 
+                    backgroundColor: (saving || !form.business_name || (form.category_slugs || []).length === 0) ? 'var(--color-surface-high)' : 'var(--color-primary)', 
+                    color: (saving || !form.business_name || (form.category_slugs || []).length === 0) ? 'var(--color-text-muted)' : 'var(--color-on-primary)', 
+                    border: (saving || !form.business_name || (form.category_slugs || []).length === 0) ? '1px solid var(--color-border)' : 'none',
+                    cursor: (saving || !form.business_name || (form.category_slugs || []).length === 0) ? 'not-allowed' : 'pointer',
+                    fontFamily: 'inherit'
+                }}
+                onClick={save} 
+                disabled={saving || !form.business_name || (form.category_slugs || []).length === 0}
+                onMouseEnter={e => { if (!saving && form.business_name && (form.category_slugs || []).length > 0) e.currentTarget.style.opacity = '0.88'; }}
+                onMouseLeave={e => { if (!saving && form.business_name && (form.category_slugs || []).length > 0) e.currentTarget.style.opacity = '1'; }}>
+                {saving ? (
+                    <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Saving...
+                    </>
+                ) : creating ? (
+                    <>
+                        <Save className="h-4 w-4" />
+                        Submit Profile for Review
+                    </>
+                ) : (
+                    <>
+                        <Save className="h-4 w-4" />
+                        Save Changes
+                    </>
+                )}
             </button>
         </div>
     );

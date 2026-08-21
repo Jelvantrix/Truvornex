@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { toast } from 'sonner';
-import { CheckCircle, Clock, MapPin, ArrowLeft, ArrowRight, Calendar as CalendarIcon, Plus } from 'lucide-react';
+import { CheckCircle, Clock, MapPin, ArrowLeft, ArrowRight, Calendar as CalendarIcon } from 'lucide-react';
 
 const TIME_SLOTS = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00'];
 
@@ -84,7 +84,8 @@ export default function BookService() {
                 Your booking for <span className="font-semibold" style={{ color: 'var(--color-primary)' }}>{service?.name}</span> has been submitted.
                 The provider will confirm shortly.
             </p>
-            <div className="glass rounded-2xl p-4 text-left mt-6 mb-8 space-y-2 shadow-premium">
+            <div className="rounded-2xl p-4 text-left mt-6 mb-8 space-y-2 card-premium shimmer hover-lift"
+                style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
                 {[
                     { label: 'Service', value: service?.name },
                     { label: 'Provider', value: provider?.business_name },
@@ -101,8 +102,8 @@ export default function BookService() {
                 </div>
             </div>
             <div className="flex gap-3 justify-center">
-                <Button onClick={() => navigate('/dashboard')} className="rounded-xl">View My Bookings</Button>
-                <Button variant="outline" onClick={() => navigate('/')} className="rounded-xl">Back to Home</Button>
+                <Button onClick={() => navigate('/dashboard')} className="rounded-xl btn-lightning">View My Bookings</Button>
+                <Button variant="outline" onClick={() => navigate('/')} className="rounded-xl btn-lightning-subtle">Back to Home</Button>
             </div>
         </div>
     );
@@ -128,7 +129,7 @@ export default function BookService() {
             </Link>
 
             {/* Service summary card */}
-            <div className="card-premium p-5 mb-6">
+            <div className="card-premium p-5 mb-6 hover-lift card-lightning-subtle shimmer">
                 <div className="flex items-center justify-between gap-4">
                     <div>
                         <p className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-subtle)' }}>Booking</p>
@@ -146,7 +147,7 @@ export default function BookService() {
             </div>
 
             {/* Step indicator */}
-            <div className="glass rounded-2xl p-1.5 flex gap-1 mb-6 shadow-premium">
+            <div className="card-premium p-1.5 flex gap-1 mb-6 card-lightning-subtle">
                 {[{ n: 1, label: 'Date' }, { n: 2, label: 'Time' }, { n: 3, label: 'Confirm' }].map(s => (
                     <button key={s.n} onClick={() => s.n < step && setStep(s.n)} style={stepStyle(s.n)}>
                         <span className="h-4 w-4 rounded-full text-[10px] flex items-center justify-center font-bold"
@@ -160,19 +161,19 @@ export default function BookService() {
             </div>
 
             {step === 1 && (
-                <div className="card-premium p-6">
+                <div className="card-premium p-6 card-lightning-subtle hover-lift shimmer">
                     <h2 className="font-bold text-base mb-4 flex items-center gap-2">
                         <CalendarIcon className="h-4 w-4" /> Select Date
                     </h2>
                     <Calendar mode="single" selected={date} onSelect={setDate} disabled={d => d < new Date()} className="mx-auto" />
-                    <Button className="w-full mt-4 h-11 rounded-xl" disabled={!date} onClick={() => setStep(2)}>
+                    <Button className="w-full mt-4 h-11 rounded-xl btn-lightning" disabled={!date} onClick={() => setStep(2)}>
                         Continue <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                 </div>
             )}
 
             {step === 2 && (
-                <div className="card-premium p-6">
+                <div className="card-premium p-6 card-lightning-subtle hover-lift shimmer">
                     <h2 className="font-bold text-base mb-1 flex items-center gap-2">
                         <Clock className="h-4 w-4" /> Select Time
                     </h2>
@@ -183,7 +184,7 @@ export default function BookService() {
                             const selected = slot === t;
                             return (
                                 <button key={t} onClick={() => !booked && setSlot(t)} disabled={booked}
-                                    className="h-10 rounded-xl text-xs font-semibold transition-all"
+                                    className="h-10 rounded-xl text-xs font-semibold transition-all btn-lightning-subtle"
                                     style={{
                                         backgroundColor: booked ? 'var(--color-surface-high)' : selected ? 'var(--color-primary)' : 'var(--color-surface-high)',
                                         color: booked ? 'var(--color-text-subtle)' : selected ? 'var(--color-on-primary)' : 'var(--color-text-muted)',
@@ -205,8 +206,8 @@ export default function BookService() {
                             date={date.toISOString().split('T')[0]} timeSlot={slot} price={totalPrice} />
                     )}
                     <div className="flex gap-3 mt-5">
-                        <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setStep(1)}>Back</Button>
-                        <Button className="flex-1 rounded-xl" disabled={!slot} onClick={() => setStep(3)}>
+                        <Button variant="outline" className="flex-1 rounded-xl btn-lightning-subtle" onClick={() => setStep(1)}>Back</Button>
+                        <Button className="flex-1 rounded-xl btn-lightning" disabled={!slot} onClick={() => setStep(3)}>
                             Continue <ArrowRight className="h-4 w-4 ml-2" />
                         </Button>
                     </div>
@@ -214,9 +215,10 @@ export default function BookService() {
             )}
 
             {step === 3 && (
-                <div className="card-premium p-6 space-y-5">
+                <div className="card-premium p-6 space-y-5 card-lightning-subtle hover-lift shimmer">
                     <h2 className="font-bold text-base">Confirm Booking</h2>
-                    <div className="rounded-xl p-4 space-y-2.5" style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)' }}>
+                    <div className="rounded-xl p-4 space-y-2.5 card-premium shimmer"
+                        style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)' }}>
                         {[
                             { label: 'Service', value: service?.name },
                             { label: 'Provider', value: provider?.business_name },
@@ -240,7 +242,7 @@ export default function BookService() {
                                 {variants.filter(v => v.type === 'addon').map(v => {
                                     const sel = selectedAddons.some(a => a.id === v.id);
                                     return (
-                                        <button key={v.id} onClick={() => toggleAddon(v)} className="w-full flex items-center justify-between p-3 rounded-xl text-sm transition-all text-left"
+                                        <button key={v.id} onClick={() => toggleAddon(v)} className="w-full flex items-center justify-between p-3 rounded-xl text-sm transition-all text-left card-lightning-subtle hover-lift"
                                             style={{ backgroundColor: sel ? 'var(--color-surface-high)' : 'transparent', border: `1px solid ${sel ? 'var(--color-primary)' : 'var(--color-border)'}`, fontFamily: 'inherit', cursor: 'pointer' }}>
                                             <div>
                                                 <p className="font-medium" style={{ color: 'var(--color-primary)' }}>{v.name}</p>
@@ -261,11 +263,11 @@ export default function BookService() {
                         <label className="text-[10px] font-semibold uppercase tracking-wider mb-2 block" style={{ color: 'var(--color-text-subtle)' }}>Notes (optional)</label>
                         <Textarea value={notes} onChange={e => setNotes(e.target.value)}
                             placeholder="Any special requests or instructions..."
-                            className="resize-none rounded-xl text-sm" rows={3} />
+                            className="input-lightning resize-none rounded-xl text-sm" rows={3} />
                     </div>
                     <div className="flex gap-3">
-                        <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setStep(2)}>Back</Button>
-                        <button className="flex-1 h-11 rounded-xl text-sm font-semibold transition-all"
+                        <Button variant="outline" className="flex-1 rounded-xl btn-lightning-subtle" onClick={() => setStep(2)}>Back</Button>
+                        <button className="flex-1 h-11 rounded-xl text-sm font-semibold transition-all btn-lightning"
                             style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)', border: 'none', cursor: submitting ? 'wait' : 'pointer', fontFamily: 'inherit', opacity: submitting ? 0.7 : 1 }}
                             onClick={handleBook} disabled={submitting}
                             onMouseEnter={e => { if (!submitting) e.currentTarget.style.opacity = '0.88'; }}

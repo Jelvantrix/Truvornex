@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Layers, Users, Tag, Plus, Calendar, Check, Loader2, X, TrendingDown, Zap, Star } from 'lucide-react';
+import { Layers, Users, Plus, Loader2, X, TrendingDown, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 
 const SERVICE_CATEGORIES = [
@@ -16,11 +16,11 @@ const SERVICE_CATEGORIES = [
 ];
 
 const STATUS_CONFIG = {
-    forming: { label: 'Forming', color: '#93c5fd', bg: 'rgba(147,197,253,0.08)' },
-    confirmed: { label: 'Confirmed', color: '#6ee7b7', bg: 'rgba(110,231,183,0.08)' },
-    active: { label: 'Active', color: '#fcd34d', bg: 'rgba(252,211,77,0.08)' },
-    completed: { label: 'Done', color: '#888', bg: 'rgba(136,136,136,0.08)' },
-    cancelled: { label: 'Cancelled', color: '#fca5a5', bg: 'rgba(252,165,165,0.08)' },
+    forming: { label: 'Forming', color: 'var(--color-info)', bg: 'rgba(147,197,253,0.08)' },
+    confirmed: { label: 'Confirmed', color: 'var(--color-success)', bg: 'rgba(110,231,183,0.08)' },
+    active: { label: 'Active', color: 'var(--color-warning)', bg: 'rgba(252,211,77,0.08)' },
+    completed: { label: 'Done', color: 'var(--color-text-muted)', bg: 'rgba(136,136,136,0.08)' },
+    cancelled: { label: 'Cancelled', color: 'var(--color-error)', bg: 'rgba(252,165,165,0.08)' },
 };
 
 const EMPTY = {
@@ -118,7 +118,7 @@ export default function ServiceBundles() {
         <div style={{ maxWidth: 800, margin: '0 auto' }}>
             <div className="flex items-center justify-between mb-5">
                 <div>
-                    <h1 className="font-display font-bold text-2xl tracking-tight flex items-center gap-2" style={{ color: 'var(--color-text)' }}>
+                    <h1 className="font-display font-bold text-2xl tracking-tight flex items-center gap-2" style={{ color: 'var(--color-primary)' }}>
                         <Layers className="h-6 w-6" style={{ color: 'var(--color-primary)' }} />
                         Service Bundles
                     </h1>
@@ -126,7 +126,7 @@ export default function ServiceBundles() {
                 </div>
                 {user && (
                     <button onClick={() => setCreateOpen(true)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold btn-lightning"
                         style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)' }}>
                         <Plus className="h-3.5 w-3.5" /> Create Bundle
                     </button>
@@ -136,12 +136,11 @@ export default function ServiceBundles() {
             {/* How it works */}
             <div className="grid grid-cols-3 gap-3 mb-5">
                 {[
-                    { icon: Users, label: 'Group up', sub: '3–8 neighbors', color: '#93c5fd' },
-                    { icon: TrendingDown, label: 'Save up to 35%', sub: 'Shared provider trip', color: '#6ee7b7' },
-                    { icon: Zap, label: 'Book together', sub: 'One confirmed slot', color: '#fcd34d' },
+                    { icon: Users, label: 'Group up', sub: '3–8 neighbors', color: 'var(--color-info)' },
+                    { icon: TrendingDown, label: 'Save up to 35%', sub: 'Shared provider trip', color: 'var(--color-success)' },
+                    { icon: Zap, label: 'Book together', sub: 'One confirmed slot', color: 'var(--color-warning)' },
                 ].map(item => (
-                    <div key={item.label} className="rounded-2xl p-4 text-center"
-                        style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+                    <div key={item.label} className="rounded-2xl p-4 text-center card-premium shimmer hover-lift">
                         <div className="h-9 w-9 rounded-xl mx-auto mb-2 flex items-center justify-center"
                             style={{ backgroundColor: item.color + '15' }}>
                             <item.icon className="h-4 w-4" style={{ color: item.color }} />
@@ -164,7 +163,7 @@ export default function ServiceBundles() {
                     <button key={t.key} onClick={() => handleTabChange(t.key)}
                         className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
                         style={{
-                            backgroundColor: tab === t.key ? 'var(--color-primary)' : 'var(--color-surface)',
+                            backgroundColor: tab === t.key ? 'var(--color-primary)' : 'var(--color-surface-high)',
                             color: tab === t.key ? 'var(--color-on-primary)' : 'var(--color-text-muted)',
                             border: `1px solid ${tab === t.key ? 'transparent' : 'var(--color-border)'}`,
                         }}>
@@ -195,8 +194,8 @@ export default function ServiceBundles() {
                         const discountedPrice = bundle.base_price ? bundle.base_price * (1 - bundle.discount_percentage / 100) : null;
 
                         return (
-                            <div key={bundle.id} className="rounded-2xl p-5"
-                                style={{ backgroundColor: 'var(--color-surface)', border: `1px solid ${joined ? 'rgba(110,231,183,0.2)' : 'var(--color-border)'}` }}>
+                            <div key={bundle.id} className="rounded-2xl p-5 card-premium shimmer hover-lift"
+                                style={{ border: `1px solid ${joined ? 'rgba(110,231,183,0.2)' : 'var(--color-border)'}` }}>
                                 <div className="flex items-start justify-between gap-3 mb-3">
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
@@ -204,31 +203,31 @@ export default function ServiceBundles() {
                                                 style={{ backgroundColor: st.bg, color: st.color }}>
                                                 {st.label}
                                             </span>
-                                            {joined && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(110,231,183,0.1)', color: '#6ee7b7' }}>✓ Joined</span>}
+                                            {joined && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(110,231,183,0.1)', color: 'var(--color-success)' }}>✓ Joined</span>}
                                             {organizer && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: 'var(--color-surface-high)', color: 'var(--color-text-subtle)' }}>Organizer</span>}
                                         </div>
                                         <h3 className="font-bold text-sm" style={{ color: 'var(--color-text)' }}>{bundle.title}</h3>
                                         {bundle.description && <p className="text-xs mt-0.5 line-clamp-2" style={{ color: 'var(--color-text-subtle)' }}>{bundle.description}</p>}
                                     </div>
                                     <div className="shrink-0 text-right">
-                                        <span className="text-xl font-black" style={{ color: '#6ee7b7' }}>{bundle.discount_percentage}%</span>
+                                        <span className="text-xl font-black" style={{ color: 'var(--color-success)' }}>{bundle.discount_percentage}%</span>
                                         <p className="text-[10px]" style={{ color: 'var(--color-text-subtle)' }}>off</p>
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-3 gap-2 mb-3">
-                                    <div className="rounded-xl p-2 text-center" style={{ backgroundColor: 'var(--color-surface-high)' }}>
+                                    <div className="rounded-xl p-2 text-center card-premium shimmer">
                                         <p className="text-xs font-bold" style={{ color: 'var(--color-text)' }}>{current}/{max}</p>
                                         <p className="text-[9px]" style={{ color: 'var(--color-text-subtle)' }}>neighbors</p>
                                     </div>
                                     {bundle.base_price && (
-                                        <div className="rounded-xl p-2 text-center" style={{ backgroundColor: 'var(--color-surface-high)' }}>
+                                        <div className="rounded-xl p-2 text-center card-premium shimmer">
                                             <p className="text-xs font-bold line-through" style={{ color: 'var(--color-text-subtle)' }}>PKR {parseFloat(bundle.base_price).toLocaleString()}</p>
-                                            <p className="text-xs font-black" style={{ color: '#6ee7b7' }}>PKR {discountedPrice?.toLocaleString()}</p>
+                                            <p className="text-xs font-black" style={{ color: 'var(--color-success)' }}>PKR {discountedPrice?.toLocaleString()}</p>
                                         </div>
                                     )}
                                     {bundle.scheduled_date && (
-                                        <div className="rounded-xl p-2 text-center" style={{ backgroundColor: 'var(--color-surface-high)' }}>
+                                        <div className="rounded-xl p-2 text-center card-premium shimmer">
                                             <p className="text-xs font-bold" style={{ color: 'var(--color-text)' }}>
                                                 {new Date(bundle.scheduled_date).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                                             </p>
@@ -243,17 +242,18 @@ export default function ServiceBundles() {
                                         <span>{pct}%</span>
                                     </div>
                                     <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--color-surface-high)' }}>
-                                        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: pct >= 100 ? '#6ee7b7' : '#fcd34d' }} />
+                                        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: pct >= 100 ? 'var(--color-success)' : 'var(--color-warning)' }} />
                                     </div>
                                 </div>
 
                                 {bundle.status === 'forming' && !joined && !organizer && (
                                     <button onClick={() => joinBundle(bundle)} disabled={joining === bundle.id || current >= max}
-                                        className="w-full py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-opacity"
+                                        className="w-full py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-opacity btn-lightning"
                                         style={{
                                             backgroundColor: current >= max ? 'var(--color-surface-high)' : 'var(--color-primary)',
                                             color: current >= max ? 'var(--color-text-subtle)' : 'var(--color-on-primary)',
                                             opacity: joining === bundle.id ? 0.6 : 1,
+                                            border: current >= max ? '1px solid var(--color-border)' : 'none',
                                         }}>
                                         {joining === bundle.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Users className="h-3.5 w-3.5" />}
                                         {current >= max ? 'Bundle Full' : 'Join Bundle'}
@@ -270,8 +270,7 @@ export default function ServiceBundles() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
                     style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
                     onClick={e => e.target === e.currentTarget && setCreateOpen(false)}>
-                    <div className="rounded-2xl p-5 w-full max-w-md shadow-2xl overflow-y-auto max-h-[90vh]"
-                        style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+                    <div className="rounded-2xl p-5 w-full max-w-md shadow-2xl overflow-y-auto max-h-[90vh] card-premium shimmer">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="font-bold text-base" style={{ color: 'var(--color-text)' }}>Create Bundle</h2>
                             <button onClick={() => setCreateOpen(false)} style={{ color: 'var(--color-text-subtle)' }}><X className="h-4 w-4" /></button>
@@ -281,14 +280,12 @@ export default function ServiceBundles() {
                                 <label className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--color-text-subtle)' }}>Bundle Title *</label>
                                 <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                                     placeholder="e.g. Block B AC Maintenance Bundle"
-                                    className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
-                                    style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }} />
+                                    className="input-lightning w-full px-4 py-3.5 rounded-xl text-sm outline-none" />
                             </div>
                             <div>
                                 <label className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--color-text-subtle)' }}>Service Category *</label>
                                 <select value={form.category_slug} onChange={e => setForm(f => ({ ...f, category_slug: e.target.value }))}
-                                    className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
-                                    style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}>
+                                    className="input-lightning w-full px-4 py-3.5 rounded-xl text-sm outline-none">
                                     <option value="">Select category…</option>
                                     {SERVICE_CATEGORIES.map(c => <option key={c.slug} value={c.slug}>{c.label}</option>)}
                                 </select>
@@ -297,23 +294,20 @@ export default function ServiceBundles() {
                                 <label className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--color-text-subtle)' }}>Description</label>
                                 <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                                     placeholder="What's needed, area, timing preferences…" rows={2}
-                                    className="w-full px-3 py-2.5 rounded-xl text-sm outline-none resize-none"
-                                    style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }} />
+                                    className="input-lightning w-full px-4 py-3.5 rounded-xl text-sm outline-none resize-none" />
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                                 <div>
                                     <label className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--color-text-subtle)' }}>Max Participants</label>
                                     <select value={form.max_participants} onChange={e => setForm(f => ({ ...f, max_participants: parseInt(e.target.value) }))}
-                                        className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
-                                        style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}>
+                                        className="input-lightning w-full px-4 py-3.5 rounded-xl text-sm outline-none">
                                         {[3, 4, 5, 6, 8, 10].map(n => <option key={n} value={n}>{n} neighbors</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--color-text-subtle)' }}>Discount %</label>
                                     <select value={form.discount_percentage} onChange={e => setForm(f => ({ ...f, discount_percentage: parseInt(e.target.value) }))}
-                                        className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
-                                        style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}>
+                                        className="input-lightning w-full px-4 py-3.5 rounded-xl text-sm outline-none">
                                         {[10, 15, 20, 25, 30, 35].map(n => <option key={n} value={n}>{n}%</option>)}
                                     </select>
                                 </div>
@@ -323,31 +317,28 @@ export default function ServiceBundles() {
                                     <label className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--color-text-subtle)' }}>Base Price (PKR)</label>
                                     <input type="number" value={form.base_price} onChange={e => setForm(f => ({ ...f, base_price: e.target.value }))}
                                         placeholder="Per person"
-                                        className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
-                                        style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }} />
+                                        className="input-lightning w-full px-4 py-3.5 rounded-xl text-sm outline-none" />
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--color-text-subtle)' }}>Scheduled Date</label>
                                     <input type="date" value={form.scheduled_date} onChange={e => setForm(f => ({ ...f, scheduled_date: e.target.value }))}
-                                        className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
-                                        style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }} />
+                                        className="input-lightning w-full px-4 py-3.5 rounded-xl text-sm outline-none" />
                                 </div>
                             </div>
                             <div>
                                 <label className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--color-text-subtle)' }}>Area / Zone</label>
                                 <input value={form.zone_name} onChange={e => setForm(f => ({ ...f, zone_name: e.target.value }))}
                                     placeholder="e.g. DHA Phase 5, Block B"
-                                    className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
-                                    style={{ backgroundColor: 'var(--color-surface-high)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }} />
+                                    className="input-lightning w-full px-4 py-3.5 rounded-xl text-sm outline-none" />
                             </div>
                         </div>
                         <div className="flex gap-2 mt-4">
-                            <button onClick={() => setCreateOpen(false)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold"
+                            <button onClick={() => setCreateOpen(false)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold btn-lightning-subtle"
                                 style={{ backgroundColor: 'var(--color-surface-high)', color: 'var(--color-text-muted)', border: '1px solid var(--color-border)' }}>
                                 Cancel
                             </button>
                             <button onClick={createBundle} disabled={saving || !form.title || !form.category_slug}
-                                className="flex-1 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-opacity"
+                                className="flex-1 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-opacity btn-lightning"
                                 style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)', opacity: (saving || !form.title || !form.category_slug) ? 0.5 : 1 }}>
                                 {saving ? <><Loader2 className="h-4 w-4 animate-spin" /> Creating…</> : 'Create Bundle'}
                             </button>
